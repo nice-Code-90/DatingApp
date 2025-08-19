@@ -22,6 +22,8 @@
     </div>
   </div>
   }@else {
-  <div class="w-full text-2xl text-center flex justify-center"><app-register class="w-full" /></div>
+  <div class="w-full text-2xl text-center flex justify-center">
+    <app-register [membersFromHome]="membersFromApp" class="w-full" />
+  </div>
   }
 </div>
