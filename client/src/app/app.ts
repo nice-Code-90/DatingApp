@@ -2,7 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { lastValueFrom } from 'rxjs';
 import { Nav } from '../layout/nav/nav';
-import { AccountService } from '../code/services/account-service';
+import { AccountService } from '../core/services/account-service';
 import { Home } from '../features/home/home';
 import { User } from '../types/user';
 
