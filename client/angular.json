@@ -12,7 +12,7 @@
         },
         "@schematics/angular:service": {
           "skipTests": true,
-          "path": "src/code/services"
+          "path": "src/core/services"
         }
       },
       "root": "",
