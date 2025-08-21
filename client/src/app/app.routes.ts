@@ -8,9 +8,17 @@ import { authGuard } from '../core/guards/auth-guard';
 
 export const routes: Routes = [
   { path: '', component: Home },
-  { path: 'members', component: MemberList, canActivate: [authGuard] },
-  { path: 'members/:id', component: MemberDetailed },
-  { path: 'lists', component: Lists },
-  { path: 'messages', component: Messages },
+  {
+    path: '',
+    runGuardsAndResolvers: 'always',
+    canActivate: [authGuard],
+    children: [
+      { path: 'members', component: MemberList },
+      { path: 'members/:id', component: MemberDetailed },
+      { path: 'lists', component: Lists },
+      { path: 'messages', component: Messages },
+    ],
+  },
+
   { path: '**', component: Home },
 ];
