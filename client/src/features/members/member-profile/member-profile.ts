@@ -2,6 +2,7 @@ import { Component, inject, signal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { Member } from '../../../types/member';
 import { DatePipe } from '@angular/common';
+import { MemberService } from '../../../core/services/member-service';
 
 @Component({
   selector: 'app-member-profile',
@@ -10,6 +11,7 @@ import { DatePipe } from '@angular/common';
   styleUrl: './member-profile.css',
 })
 export class MemberProfile {
+  protected memberService = inject(MemberService);
   private route = inject(ActivatedRoute);
   protected member = signal<Member | undefined>(undefined);
 
