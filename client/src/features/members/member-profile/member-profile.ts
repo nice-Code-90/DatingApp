@@ -47,7 +47,13 @@ export class MemberProfile {
   updateProfile() {
     if (!this.member()) return;
     const updatedMember = { ...this.member(), ...this.editableMember };
-    console.log(updatedMember);
+    this.memberService.updateMember(updatedMember).subscribe({
+      next: () => {
+        this.toast.success('Profile updated successfully');
+        this.memberService.editMode.set(false);
+        this.editForm?.reset(updatedMember);
+      },
+    });
     this.toast.success('Profile updated successfully');
     this.memberService.editMode.set(false);
   }
