@@ -1,4 +1,4 @@
-@if (!membdrService.editMode()) { @if(photos$ | async; as photos){ @if (photos.length > 0){
+@if (!memberService.editMode()) { @if(photos() ; as photos){ @if (photos.length > 0){
 <div class="grid grid-cols-4 auto-rows-min gap-3 p-5 h-[65vh] overflow-auto">
   @for (photo of photos; track photo.id){
   <img src="{{ photo.url }}" alt="photo of member" class="w-full rounded-lg" />
@@ -7,5 +7,5 @@
 } @else {
 <p class="text-center text-gray-500">No photos available</p>
 } } } @else {
-<app-image-upload />
+<app-image-upload (uploadFile)="onUploadImage($event)" [loading]="loading()" />
 }
