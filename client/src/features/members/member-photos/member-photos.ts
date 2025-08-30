@@ -4,15 +4,16 @@ import { ActivatedRoute } from '@angular/router';
 import { Observable } from 'rxjs';
 import { Photo } from '../../../types/member';
 import { AsyncPipe } from '@angular/common';
+import { ImageUpload } from '../../../shared/image-upload/image-upload';
 
 @Component({
   selector: 'app-member-photos',
-  imports: [AsyncPipe],
+  imports: [AsyncPipe, ImageUpload],
   templateUrl: './member-photos.html',
   styleUrl: './member-photos.css',
 })
 export class MemberPhotos {
-  private membdrService = inject(MemberService);
+  protected membdrService = inject(MemberService);
 
   private route = inject(ActivatedRoute);
   protected photos$?: Observable<Photo[]>;
