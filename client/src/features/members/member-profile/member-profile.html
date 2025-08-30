@@ -46,7 +46,7 @@
       />
     </label>
     <div class="flex self-end">
-      <button type="submit" class="btn btn-primary">Submit</button>
+      <button [disabled]="!editForm.dirty" type="submit" class="btn btn-primary">Submit</button>
     </div>
   </form>
 
