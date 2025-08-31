@@ -1,5 +1,5 @@
 import { Component, inject, output } from '@angular/core';
-import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
+import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RegisterCreds } from '../../../types/user';
 import { AccountService } from '../../../core/services/account-service';
 import { JsonPipe } from '@angular/common';
@@ -11,7 +11,6 @@ import { JsonPipe } from '@angular/common';
   styleUrl: './register.css',
 })
 export class Register {
-  private accountService = inject(AccountService);
   cancelRegister = output<boolean>();
   protected creds = {} as RegisterCreds;
   protected registerForm: FormGroup = new FormGroup({});
@@ -22,10 +21,14 @@ export class Register {
 
   initializeForm() {
     this.registerForm = new FormGroup({
-      email: new FormControl(),
-      displayName: new FormControl(),
-      password: new FormControl(),
-      confirmPassword: new FormControl(),
+      email: new FormControl('johndoe@test.com', [Validators.required, Validators.email]),
+      displayName: new FormControl('', Validators.required),
+      password: new FormControl('', [
+        Validators.required,
+        Validators.minLength(4),
+        Validators.maxLength(8),
+      ]),
+      confirmPassword: new FormControl('', Validators.required),
     });
   }
 
