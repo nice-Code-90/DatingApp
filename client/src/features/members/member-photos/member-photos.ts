@@ -7,10 +7,11 @@ import { Member, Photo } from '../../../types/member';
 import { ImageUpload } from '../../../shared/image-upload/image-upload';
 import { AccountService } from '../../../core/services/account-service';
 import { User } from '../../../types/user';
+import { StarButton } from '../../../shared/star-button/star-button';
 
 @Component({
   selector: 'app-member-photos',
-  imports: [ImageUpload],
+  imports: [ImageUpload, StarButton],
   templateUrl: './member-photos.html',
   styleUrl: './member-photos.css',
 })
