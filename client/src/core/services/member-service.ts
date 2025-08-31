@@ -39,4 +39,7 @@ export class MemberService {
     formData.append('file', file);
     return this.http.post<Photo>(this.baseUrl + 'members/add-photo', formData);
   }
+  setMainPhoto(photo: Photo) {
+    return this.http.put(this.baseUrl + 'members/set-main-photo/' + photo.id, {});
+  }
 }
