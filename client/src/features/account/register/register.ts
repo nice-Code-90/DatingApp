@@ -1,7 +1,7 @@
-import { Component, output } from '@angular/core';
+import { Component, inject, output } from '@angular/core';
 import {
   AbstractControl,
-  FormControl,
+  FormBuilder,
   FormGroup,
   ReactiveFormsModule,
   ValidationErrors,
@@ -20,24 +20,17 @@ import { TextInput } from '../../../shared/text-input/text-input';
   styleUrl: './register.css',
 })
 export class Register {
+  private fb = inject(FormBuilder);
   cancelRegister = output<boolean>();
   protected creds = {} as RegisterCreds;
-  protected registerForm: FormGroup = new FormGroup({});
+  protected registerForm: FormGroup;
 
-  ngOnInit() {
-    this.initializeForm();
-  }
-
-  initializeForm() {
-    this.registerForm = new FormGroup({
-      email: new FormControl('', [Validators.required, Validators.email]),
-      displayName: new FormControl('', Validators.required),
-      password: new FormControl('', [
-        Validators.required,
-        Validators.minLength(4),
-        Validators.maxLength(8),
-      ]),
-      confirmPassword: new FormControl('', [Validators.required, this.matchValues('password')]),
+  constructor() {
+    this.registerForm = this.fb.group({
+      email: ['', [Validators.required, Validators.email]],
+      displayName: ['', Validators.required],
+      password: ['', [Validators.required, Validators.minLength(4), Validators.maxLength(8)]],
+      confirmPassword: ['', [Validators.required, this.matchValues('password')]],
     });
 
     this.registerForm.controls['password'].valueChanges.subscribe(() => {
