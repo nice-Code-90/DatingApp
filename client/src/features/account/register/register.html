@@ -30,7 +30,27 @@
       class="flex flex-col gap-4 w-full steps"
       (ngSubmit)="register()"
     >
-      <div>Profile form goes here</div>
+      <div class="flex items-center gap-4">
+        <div class="font-semibold">Gender:</div>
+        <label class="flex items-center gap-3">
+          <span>Male</span>
+          <input type="radio" formControlName="gender" value="male" class="radio radio-primary" />
+        </label>
+
+        <label class="flex items-center gap-3">
+          <span>Female</span>
+          <input type="radio" formControlName="gender" value="female" class="radio radio-primary" />
+        </label>
+      </div>
+
+      <app-text-input
+        type="date"
+        [maxDate]="getMaxDate()"
+        label="Date of birth"
+        formControlName="dateOfBirth"
+      />
+      <app-text-input label="City" formControlName="city" />
+      <app-text-input label="Country" formControlName="country" />
       <div class="flex items-center justify-end gap-3">
         <button (click)="prevStep()" type="button" class="btn">Back</button>
         <button
