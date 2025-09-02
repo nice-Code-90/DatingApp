@@ -21,7 +21,7 @@
 
     <button
       class="btn btn-circle btn-ghost"
-      [disabled]="pageNumber() === 1"
+      [disabled]="pageNumber() >= totalPages()"
       (click)="onPageChange(pageNumber() + 1)"
     >
       &rarr;
