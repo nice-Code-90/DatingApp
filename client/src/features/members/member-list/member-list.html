@@ -1,4 +1,4 @@
-@if (paginatedMembers$ | async; as paginatedResult) { @if (paginatedResult.metadata; as metadata){
+@if (paginatedMembers(); as paginatedResult) { @if (paginatedResult.metadata; as metadata){
 <app-paginator
   [pageNumber]="metadata.currentPage"
   [totalCount]="metadata.totalCount"
