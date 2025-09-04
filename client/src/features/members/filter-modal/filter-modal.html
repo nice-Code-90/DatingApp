@@ -1,0 +1,12 @@
+<dialog #filterModal class="modal">
+  <div class="modal-box">
+    <h3 class="text-lg font-bold">Hello!</h3>
+
+    <p class="py-4">Press ESC key or click on ✕ button to close</p>
+    <button (click)="submit()" class="btn btn-primary">Submit</button>
+  </div>
+
+  <form method="dialog" class="modal-backdrop">
+    <button (click)="close()">Close</button>
+  </form>
+</dialog>
