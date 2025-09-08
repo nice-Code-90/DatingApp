@@ -16,6 +16,13 @@ export class FilterModal {
 
   memberParams = new MemberParams();
 
+  constructor() {
+    const filters = localStorage.getItem('filters');
+    if (filters) {
+      this.memberParams = JSON.parse(filters);
+    }
+  }
+
   open() {
     this.modalRef.nativeElement.showModal();
   }
