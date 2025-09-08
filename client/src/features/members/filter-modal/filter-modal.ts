@@ -1,4 +1,4 @@
-import { Component, ElementRef, output, ViewChild } from '@angular/core';
+import { Component, ElementRef, input, model, output, ViewChild } from '@angular/core';
 import { MemberParams } from '../../../types/member';
 import { FormsModule } from '@angular/forms';
 
@@ -14,12 +14,12 @@ export class FilterModal {
 
   submitData = output<MemberParams>();
 
-  memberParams = new MemberParams();
+  memberParams = model(new MemberParams());
 
   constructor() {
     const filters = localStorage.getItem('filters');
     if (filters) {
-      this.memberParams = JSON.parse(filters);
+      this.memberParams.set(JSON.parse(filters));
     }
   }
 
@@ -33,17 +33,17 @@ export class FilterModal {
   }
 
   submit() {
-    this.submitData.emit(this.memberParams);
+    this.submitData.emit(this.memberParams());
     this.close();
   }
 
   onMinAgeChange() {
-    if (this.memberParams.minAge < 18) this.memberParams.minAge = 18;
+    if (this.memberParams().minAge < 18) this.memberParams().minAge = 18;
   }
 
   onMaxAgaChange() {
-    if (this.memberParams.maxAge < this.memberParams.minAge) {
-      this.memberParams.maxAge = this.memberParams.minAge;
+    if (this.memberParams().maxAge < this.memberParams().minAge) {
+      this.memberParams().maxAge = this.memberParams().minAge;
     }
   }
 }
