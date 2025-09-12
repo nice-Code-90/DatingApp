@@ -8,7 +8,7 @@
     alt="{{ member.displayName }} image"
     class="rounded-lg"
   />
-  <button class="absolute top-1 right-1 z-40 btn btn-ghost btn-circle">
+  <button (click)="toggleLike($event)" class="absolute top-1 right-1 z-40 btn btn-ghost btn-circle">
     <svg
       xmlns="http://www.w3.org/2000/svg"
       [attr.fill]="hasLiked() ? 'red' : 'none'"
