@@ -43,7 +43,7 @@ public class AccountController(UserManager<AppUser> userManager, ITokenService t
 
             return ValidationProblem();
         }
-        return user.ToDto(tokenService);
+        return await user.ToDto(tokenService);
 
 
     }
@@ -59,7 +59,7 @@ public class AccountController(UserManager<AppUser> userManager, ITokenService t
 
 
         if (!result) return Unauthorized("Invalid password"); // only provide info for dev purposes
-        return user.ToDto(tokenService);
+        return await user.ToDto(tokenService);
 
     }
 }
