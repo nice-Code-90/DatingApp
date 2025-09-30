@@ -57,7 +57,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         {
             OnMessageReceived = context =>
             {
-                var accesToken = context.Request.Query["acces_token"];
+                var accesToken = context.Request.Query["access_token"];
 
                 var path = context.HttpContext.Request.Path;
 
