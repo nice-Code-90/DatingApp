@@ -6,5 +6,8 @@ namespace API.Entities
     {
         [Key]
         public string Name { get; set; } = name;
+
+        //nav properties
+        public ICollection<Connection> Connections { get; set; } = [];
     }
 }
