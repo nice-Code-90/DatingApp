@@ -21,7 +21,7 @@ export class MessageService {
     const currentUser = this.accountService.currentUser();
     if (!currentUser) return;
     this.hubConnection = new HubConnectionBuilder()
-      .withUrl(this.hubUrl + 'messages?user=' + otherUserId, {
+      .withUrl(this.hubUrl + 'messages?userId=' + otherUserId, {
         accessTokenFactory: () => currentUser.token,
       })
       .withAutomaticReconnect()
@@ -32,8 +32,7 @@ export class MessageService {
       this.messageThread.set(
         messages.map((message) => ({
           ...message,
-
-          currentUserSender: message.senderId !== otherUserId,
+          currentUserSender: message.senderId === currentUser.id,
         }))
       );
     });
