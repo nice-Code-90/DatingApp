@@ -6,6 +6,6 @@
         public string UserId { get; set; } = userId;
 
         //nav property
-        public Group Group { get; set; } = null;
+        public Group Group { get; set; } = null!;
     }
 }
