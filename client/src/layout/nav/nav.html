@@ -1,4 +1,4 @@
-<header class="p-3 w-full fixed top-0 z-50 bg-gradient-to-r from-primary to-black">
+<header class="h-65 w-full fixed top-0 z-50 bg-[url('/header.jpg')] bg-cover bg-center">
   <div class="flex align-middle items-center px-10 mx-auto gap-6">
     <div class="text-white">
       <a
@@ -22,25 +22,24 @@
       </a>
     </div>
     <nav class="flex gap-3 my-2 uppercase text-lg text-white">
-      @if(accountService.currentUser()){
-      <a
-        routerLink="/members"
-        routerLinkActive="text-accent"
-        [routerLinkActiveOptions]="{ exact: true }"
-        >Matches</a
-      >
-      <a routerLink="/lists" routerLinkActive="text-accent">Lists</a
-      ><a routerLink="/messages" routerLinkActive="text-accent">Messages</a>
-      <a *appHasRole="['Admin', 'Moderator']" routerLink="/admin" routerLinkActive="text-accent"
-        >Admin</a
-      >
-
+      @if (accountService.currentUser()) {
+        <a
+          routerLink="/members"
+          routerLinkActive="text-accent"
+          [routerLinkActiveOptions]="{ exact: true }"
+          >Matches</a
+        >
+        <a routerLink="/lists" routerLinkActive="text-accent">Lists</a
+        ><a routerLink="/messages" routerLinkActive="text-accent">Messages</a>
+        <a *appHasRole="['Admin', 'Moderator']" routerLink="/admin" routerLinkActive="text-accent"
+          >Admin</a
+        >
       }
       <a routerLink="/errors" routerLinkActive="text-accent">Errors</a>
     </nav>
 
-    @if(busyService.busyRequestCount() > 0){
-    <span class="loading loading-spinner text-accent"> </span>
+    @if (busyService.busyRequestCount() > 0) {
+      <span class="loading loading-spinner text-accent"> </span>
     }
 
     <div class="flex align-middle ml-auto gap-3">
@@ -69,60 +68,60 @@
           tabindex="1"
           class="dropdown-content z-50 menu bg-base-100 rounded-box w-52 p-2 shadow-sm"
         >
-          @for (theme of themes; track $index ){
-          <li (click)="handleSelectTheme(theme)">
-            <a>{{ theme }}</a>
-          </li>
+          @for (theme of themes; track $index) {
+            <li (click)="handleSelectTheme(theme)">
+              <a>{{ theme }}</a>
+            </li>
           }
         </ul>
       </div>
 
-      @if (accountService.currentUser(); as user){
-      <div class="dropdown dropdown-end">
-        <div
-          tabindex="0"
-          role="button"
-          class="flex items-center text-white text-xl gap-3 cursor-pointer"
-        >
-          <img
-            [src]="user?.imageUrl || '/user.png'"
-            alt="user avatar"
-            class="w-10 h-10 rounded-full"
-          />
-          <span>{{ user.displayName }}</span>
+      @if (accountService.currentUser(); as user) {
+        <div class="dropdown dropdown-end">
+          <div
+            tabindex="0"
+            role="button"
+            class="flex items-center text-white text-xl gap-3 cursor-pointer"
+          >
+            <img
+              [src]="user?.imageUrl || '/user.png'"
+              alt="user avatar"
+              class="w-10 h-10 rounded-full"
+            />
+            <span>{{ user.displayName }}</span>
+          </div>
+          <ul
+            (click)="handleSelectUserItem()"
+            tabindex="0"
+            class="dropdown-content menu bg-base-100 rounded-box z-1 w-52 p-2 shadow-sm"
+          >
+            <li><a routerLink="members/{{ user.id }}">Edit profile</a></li>
+            <li><a (click)="logout()">Logout</a></li>
+          </ul>
         </div>
-        <ul
-          (click)="handleSelectUserItem()"
-          tabindex="0"
-          class="dropdown-content menu bg-base-100 rounded-box z-1 w-52 p-2 shadow-sm"
-        >
-          <li><a routerLink="members/{{ user.id }}">Edit profile</a></li>
-          <li><a (click)="logout()">Logout</a></li>
-        </ul>
-      </div>
-      }@else{
-
-      <form #loginForm="ngForm" (ngSubmit)="login()" class="flex items-center gap-3">
-        <input
-          [(ngModel)]="creds.email"
-          name="email"
-          type="text"
-          class="input"
-          placeholder="Email"
-        />
-        <input
-          [(ngModel)]="creds.password"
-          name="password"
-          type="password"
-          class="input"
-          placeholder="Password"
-        />
-        <button type="submit" class="btn btn-primary">
-          @if(loading()){
-          <span class="mr-2 loading loading-spinner"></span>
-          } Login
-        </button>
-      </form>
+      } @else {
+        <form #loginForm="ngForm" (ngSubmit)="login()" class="flex items-center gap-3">
+          <input
+            [(ngModel)]="creds.email"
+            name="email"
+            type="text"
+            class="input"
+            placeholder="Email"
+          />
+          <input
+            [(ngModel)]="creds.password"
+            name="password"
+            type="password"
+            class="input"
+            placeholder="Password"
+          />
+          <button type="submit" class="btn btn-primary">
+            @if (loading()) {
+              <span class="mr-2 loading loading-spinner"></span>
+            }
+            Login
+          </button>
+        </form>
       }
     </div>
   </div>
