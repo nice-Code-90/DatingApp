@@ -1,7 +1,7 @@
 @if (member(); as member) {
   <div
     routerLink="/members/{{ member.id }}"
-    class="card cursor-pointer transition-all duration-300 ease-in-out transform hover:-translate-y-2 relative w-full max-w-xs"
+    class="card cursor-pointer transition-all duration-300 ease-in-out transform hover:-translate-y-2 relative w-full max-w-xs mx-auto"
   >
     <img
       src="{{ member?.imageUrl || '/user.png' }}"
