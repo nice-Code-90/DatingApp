@@ -1,12 +1,12 @@
 @if (member(); as member) {
   <div
     routerLink="/members/{{ member.id }}"
-    class="card cursor-pointer transition-all duration-300 ease-in-out transform hover:-translate-y-2 relative max-w-[238px]"
+    class="card cursor-pointer transition-all duration-300 ease-in-out transform hover:-translate-y-2 relative w-full max-w-xs"
   >
     <img
       src="{{ member?.imageUrl || '/user.png' }}"
       alt="{{ member.displayName }} image"
-      class="rounded-lg"
+      class="rounded-lg w-full aspect-square object-cover"
     />
     @if (isOnline()) {
       <span class="status status-success status-xl absolute top-3 left-3"></span>
