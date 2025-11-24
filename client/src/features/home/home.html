@@ -1,30 +1,145 @@
-<div class="hero bg-base-200 min-h-screen">
-  @if (!registerMode()) {
-    <div class="hero-content text-center">
-      <div class="flex flex-col items-center">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          viewBox="0 0 24 24"
-          fill="currentColor"
-          class="size-60 text-primary"
-        >
-          <path
-            d="M4.5 6.375a4.125 4.125 0 1 1 8.25 0 4.125 4.125 0 0 1-8.25 0ZM14.25 8.625a3.375 3.375 0 1 1 6.75 0 3.375 3.375 0 0 1-6.75 0ZM1.5 19.125a7.125 7.125 0 0 1 14.25 0v.003l-.001.119a.75.75 0 0 1-.363.63 13.067 13.067 0 0 1-6.761 1.873c-2.472 0-4.786-.684-6.76-1.873a.75.75 0 0 1-.364-.63l-.001-.122ZM17.25 19.128l-.001.144a2.25 2.25 0 0 1-.233.96 10.088 10.088 0 0 0 5.06-1.01.75.75 0 0 0 .42-.643 4.875 4.875 0 0 0-6.957-4.611 8.586 8.586 0 0 1 1.71 5.157v.003Z"
-          />
-        </svg>
-        <h1 class="text-5xl font-bold">Find your match</h1>
-        <p class="py-6">Come on in.. all you need to do is sign up</p>
-        <div class="flex items-center gap-3">
-          @if (!accountService.currentUser()) {
-            <button (click)="showRegister(true)" class="btn btn-primary btn-lg">Register</button>
-          }
-          <button class="btn btn-info btn-lg">Learn more</button>
+<div
+  class="fixed inset-0 w-full h-full -z-10"
+  style="
+    background-image: url('/background.jpg');
+    background-size: cover;
+    background-position: center;
+  "
+>
+  <div class="absolute inset-0 bg-black/50"></div>
+</div>
+
+<div class="relative z-10 overflow-y-auto">
+  <div class="hero min-h-screen bg-transparent">
+    @if (registerMode()) {
+      <div class="flex flex-col justify-center items-center w-full min-h-screen py-10">
+        <div class="w-full max-w-4xl px-4 z-20">
+          <app-register class="w-full block" (cancelRegister)="showRegister($event)" />
         </div>
       </div>
-    </div>
-  } @else {
-    <div class="w-full text-2xl text-center flex justify-center">
-      <app-register class="w-full" (cancelRegister)="showRegister($event)" />
-    </div>
-  }
+    } @else {
+      <div class="hero-content text-center text-neutral-content">
+        <div class="flex flex-col items-center">
+          <h1 class="text-5xl font-bold mb-4 drop-shadow-lg">Find your match</h1>
+          <p class="py-6 text-xl drop-shadow-md">Come on in.. all you need to do is sign up</p>
+
+          <div class="flex items-center gap-3">
+            @if (!accountService.currentUser()) {
+              <button (click)="showRegister(true)" class="btn btn-primary btn-lg shadow-lg">
+                Register
+              </button>
+            }
+            <button
+              (click)="learnMore()"
+              class="btn btn-outline btn-info btn-lg shadow-lg backdrop-blur-sm"
+            >
+              Learn more
+            </button>
+          </div>
+        </div>
+      </div>
+    }
+  </div>
+
+  <div id="learn-more-section" class="w-full text-gray-100">
+    <section class="py-24 bg-slate-900/80 backdrop-blur-md border-t border-white/10">
+      <div class="container mx-auto px-6">
+        <div class="flex flex-col md:flex-row items-center gap-16">
+          <div class="md:w-1/2">
+            <div class="relative rounded-3xl overflow-hidden shadow-2xl border border-white/20">
+              <img src="/couple.jpg" alt="Couple" class="object-cover w-full h-full opacity-90" />
+            </div>
+          </div>
+          <div class="md:w-1/2 space-y-6">
+            <h2 class="text-4xl font-bold text-primary drop-shadow-sm">
+              Discover Real Connections
+            </h2>
+            <p class="text-lg opacity-90 leading-relaxed">
+              Forget mindless swiping. Our platform is designed to help you find meaningful
+              relationships based on shared interests and genuine compatibility.
+            </p>
+            <ul class="space-y-4 mt-4">
+              <li class="flex items-center gap-4">
+                <span class="badge badge-primary badge-lg p-3">✓</span>
+                <span class="text-lg">Verified profiles & secure environment</span>
+              </li>
+              <li class="flex items-center gap-4">
+                <span class="badge badge-primary badge-lg p-3">✓</span>
+                <span class="text-lg">Smart matching algorithms</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="py-24 bg-black/40 backdrop-blur-md">
+      <div class="container mx-auto px-6">
+        <div class="flex flex-col md:flex-row-reverse items-center gap-16">
+          <div class="md:w-1/2">
+            <div
+              class="relative rounded-full overflow-hidden shadow-2xl border-4 border-white/10 max-w-md mx-auto aspect-square"
+            >
+              <img src="couple2.jpg" alt="Happy couple" class="object-cover w-full h-full" />
+            </div>
+          </div>
+          <div class="md:w-1/2 space-y-6">
+            <h2 class="text-3xl font-bold text-white">Why choose us?</h2>
+            <p class="text-lg opacity-90 leading-relaxed">
+              We believe that finding love shouldn't be complicated. Our mission is to bring back
+              the excitement of meeting someone new.
+            </p>
+            <button
+              (click)="showRegister(true); learnMoreMode.set(false)"
+              class="btn btn-outline btn-primary mt-4"
+            >
+              Start your journey
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="py-32 bg-slate-900/80 backdrop-blur-md text-center border-t border-white/10">
+      <div class="container mx-auto px-6">
+        <h2 class="text-4xl font-bold mb-16 text-white">Finally meet people like you</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-12">
+          <div class="flex flex-col items-center p-6 rounded-xl hover:bg-white/5 transition">
+            <p class="italic text-xl opacity-90 mb-6">
+              "I finally found someone who shares my passion for travel and coding."
+            </p>
+            <h4 class="font-bold text-primary text-lg">- Alex, 29</h4>
+          </div>
+          <div class="flex flex-col items-center p-6 rounded-xl hover:bg-white/5 transition">
+            <p class="italic text-xl opacity-90 mb-6">
+              "Safe, easy to use, and the people are actually real."
+            </p>
+            <h4 class="font-bold text-primary text-lg">- Sarah, 31</h4>
+          </div>
+          <div class="flex flex-col items-center p-6 rounded-xl hover:bg-white/5 transition">
+            <p class="italic text-xl opacity-90 mb-6">
+              "I met my soulmate within the first month!"
+            </p>
+            <h4 class="font-bold text-primary text-lg">- Michael, 35</h4>
+          </div>
+        </div>
+
+        <div class="mt-20">
+          <h3 class="text-2xl font-bold mb-8 text-white">Ready to find your match?</h3>
+          <button
+            (click)="showRegister(true); learnMoreMode.set(false)"
+            class="btn btn-primary btn-lg px-12 shadow-lg shadow-primary/30"
+          >
+            Join Now
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <footer class="footer footer-center p-10 bg-black/90 text-base-content backdrop-blur-lg">
+      <aside>
+        <p>Copyright © 2025 - All right reserved by Dating App Portfolio</p>
+      </aside>
+    </footer>
+  </div>
 </div>

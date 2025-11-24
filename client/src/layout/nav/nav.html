@@ -1,4 +1,4 @@
-<header class="h-64 xl:h-[350px] w-full fixed top-0 z-50 bg-[url('/header.jpg')] bg-cover bg-top">
+<header class="p-3 w-full fixed top-0 z-50 bg-gradient-to-r from-primary to-black">
   <div class="flex align-middle items-center px-10 mx-auto gap-6">
     <div class="text-white">
       <a
@@ -21,7 +21,7 @@
         <h3 class="text-2xl font-semibold uppercase">Dating app</h3>
       </a>
     </div>
-    <nav class="flex gap-3 my-2 uppercase text-2xl text-white">
+    <nav class="flex gap-3 my-2 uppercase text-lg text-white">
       @if (accountService.currentUser()) {
         <a
           routerLink="/members"
@@ -81,7 +81,7 @@
           <div
             tabindex="0"
             role="button"
-            class="flex items-center text-white text-2xl gap-3 cursor-pointer"
+            class="flex items-center text-white text-xl gap-3 cursor-pointer"
           >
             <img
               [src]="user?.imageUrl || '/user.png'"

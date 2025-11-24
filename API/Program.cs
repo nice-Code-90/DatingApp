@@ -13,7 +13,7 @@ using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+
 
 builder.Services.AddControllers();
 builder.Services.AddDbContext<AppDbContext>(opt =>
@@ -73,7 +73,7 @@ builder.Services.AddAuthorizationBuilder()
     .AddPolicy("ModeratePhotoRole", policy => policy.RequireRole("Admin", "Moderator"));
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+
 app.UseMiddleware<ExceptionMiddleware>();
 app.UseCors(x => x
     .AllowAnyHeader()

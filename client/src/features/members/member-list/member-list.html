@@ -13,7 +13,7 @@
     </div>
     @if (paginatedResult.items; as members) {
       <div
-        class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6"
+        class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 mx-[20px]"
       >
         @for (member of members; track member.id) {
           <app-member-card [member]="member" />
