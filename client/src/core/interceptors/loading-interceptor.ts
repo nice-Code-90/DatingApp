@@ -46,6 +46,10 @@ export const loadingInterceptor: HttpInterceptorFn = (req, next) => {
     cache.clear();
   }
 
+  if (req.url.includes('aihelper/suggestion')) {
+    return next(req);
+  }
+
   if (req.method === 'GET') {
     const cachedResponse = cache.get(cacheKey);
     if (cachedResponse) {
