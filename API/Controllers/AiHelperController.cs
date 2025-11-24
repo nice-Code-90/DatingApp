@@ -1,0 +1,31 @@
+using System.Security.Claims;
+using System.Threading.Tasks;
+using API.Interfaces;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+
+namespace API.Controllers
+{
+    [Route("api/[controller]")]
+    public class AiHelperController : BaseApiController
+    {
+        private readonly IAiHelperService _aiHelperService;
+
+        public AiHelperController(IAiHelperService aiHelperService)
+        {
+            _aiHelperService = aiHelperService;
+        }
+
+        [HttpGet("suggestion/{recipientId}")]
+        public async Task<ActionResult<string>> GetSuggestion(string recipientId)
+        {
+            var currentUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            if (string.IsNullOrEmpty(currentUserId)) return Unauthorized();
+
+            var suggestion = await _aiHelperService.GetChatSuggestion(currentUserId, recipientId);
+
+            return Ok(new { suggestion = suggestion });
+        }
+    }
+}
