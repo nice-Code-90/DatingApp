@@ -1,5 +1,7 @@
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.Json.Serialization;
+using NetTopologySuite.Geometries;
+
 
 namespace DatingApp.Domain.Entities;
 
@@ -16,6 +18,8 @@ public class Member
     public string? Description { get; set; }
     public required string City { get; set; }
     public required string Country { get; set; }
+    public Point? Location { get; set; }
+
 
     // Navigation property
     [JsonIgnore]

@@ -4,16 +4,19 @@ using DatingApp.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
 
-namespace DatingApp.Infrastructure.Data.Migrations
+namespace DatingApp.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251125144227_AddLocationToMember")]
+    partial class AddLocationToMember
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -283,18 +286,21 @@ namespace DatingApp.Infrastructure.Data.Migrations
                         new
                         {
                             Id = "member-id",
+                            ConcurrencyStamp = "8977a9ea-210b-4ec3-a3cb-8e331f73135f",
                             Name = "Member",
                             NormalizedName = "MEMBER"
                         },
                         new
                         {
                             Id = "moderator-id",
+                            ConcurrencyStamp = "4d79d2c0-af38-4bf7-880f-7288e387668a",
                             Name = "Moderator",
                             NormalizedName = "MODERATOR"
                         },
                         new
                         {
                             Id = "admin-id",
+                            ConcurrencyStamp = "0b17be31-4711-403c-aa83-ab5ebc0c208f",
                             Name = "Admin",
                             NormalizedName = "ADMIN"
                         });

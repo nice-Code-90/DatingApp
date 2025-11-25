@@ -4,6 +4,7 @@ using System.Text.Json;
 using DatingApp.Application.DTOs;
 using DatingApp.Domain.Entities;
 using Microsoft.AspNetCore.Identity;
+using NetTopologySuite.Geometries;
 using Microsoft.EntityFrameworkCore;
 
 namespace DatingApp.Infrastructure.Data;
@@ -22,6 +23,9 @@ public static class Seed
             Console.WriteLine("No members in seed data");
             return;
         }
+
+        // Létrehozunk egy GeometryFactory-t a Point objektumok gyártásához
+        var geometryFactory = new GeometryFactory(new PrecisionModel(), 4326);
 
         foreach (var member in members)
         {
@@ -45,8 +49,8 @@ public static class Seed
                     City = member.City,
                     Country = member.Country,
                     LastActive = member.LastActive,
-                    Created = member.Created
-
+                    Created = member.Created,
+                    Location = geometryFactory.CreatePoint(new Coordinate(0, 0)) 
                 }
             };
 
