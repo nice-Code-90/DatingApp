@@ -70,7 +70,7 @@ namespace DatingApp.Presentation.Controllers
         }
 
         [HttpPost("add-photo")]
-        public async Task<ActionResult<Photo>> AddPhoto([FromForm] IFormFile file)
+        public async Task<ActionResult<Photo>> AddPhoto( IFormFile file)
         {
             var member = await uow.MemberRepository.GetMemberForUpdate(User.GetMemberId());
 
