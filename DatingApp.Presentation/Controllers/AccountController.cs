@@ -12,11 +12,12 @@ using Microsoft.EntityFrameworkCore;
 
 namespace DatingApp.Presentation.Controllers;
 
-public class AccountController(UserManager<AppUser> userManager, ITokenService tokenService) : BaseApiController
+public class AccountController(UserManager<AppUser> userManager, ITokenService tokenService, IGeocodingService geocodingService) : BaseApiController
 {
     [HttpPost("register")] // api/account/register
     public async Task<ActionResult<UserDto>> Register(RegisterDto registerDto)
     {
+        if (await userManager.Users.AnyAsync(x => x.Email == registerDto.Email)) return BadRequest("Email is taken");
 
         var user = new AppUser
         {
@@ -32,6 +33,8 @@ public class AccountController(UserManager<AppUser> userManager, ITokenService t
                 DateOfBirth = registerDto.DateOfBirth
             }
         };
+
+        user.Member.Location = await geocodingService.GetCoordinatesForAddressAsync(registerDto.City, registerDto.Country);
 
         var result = await userManager.CreateAsync(user, registerDto.Password);
         if (!result.Succeeded)

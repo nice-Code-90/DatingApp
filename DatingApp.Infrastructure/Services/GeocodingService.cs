@@ -18,7 +18,6 @@ public class GeocodingService : IGeocodingService
         _httpClient = httpClient;
         _config = config;
         _logger = logger;
-
         _geometryFactory = new GeometryFactory(new PrecisionModel(), 4326);
     }
 
