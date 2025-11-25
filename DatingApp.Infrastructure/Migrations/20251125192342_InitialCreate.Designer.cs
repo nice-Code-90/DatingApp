@@ -6,14 +6,15 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+using NetTopologySuite.Geometries;
 
 #nullable disable
 
 namespace DatingApp.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20251125145704_CorrectModelSnapshot")]
-    partial class CorrectModelSnapshot
+    [Migration("20251125192342_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -168,6 +169,9 @@ namespace DatingApp.Infrastructure.Migrations
 
                     b.Property<DateTime>("LastActive")
                         .HasColumnType("datetime2");
+
+                    b.Property<Point>("Location")
+                        .HasColumnType("geography");
 
                     b.HasKey("Id");
 
@@ -427,36 +431,6 @@ namespace DatingApp.Infrastructure.Migrations
                         .HasForeignKey("DatingApp.Domain.Entities.Member", "Id")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.OwnsOne("NetTopologySuite.Geometries.Point", "Location", b1 =>
-                        {
-                            b1.Property<string>("MemberId")
-                                .HasColumnType("nvarchar(450)");
-
-                            b1.Property<double>("M")
-                                .HasColumnType("float");
-
-                            b1.Property<int>("SRID")
-                                .HasColumnType("int");
-
-                            b1.Property<double>("X")
-                                .HasColumnType("float");
-
-                            b1.Property<double>("Y")
-                                .HasColumnType("float");
-
-                            b1.Property<double>("Z")
-                                .HasColumnType("float");
-
-                            b1.HasKey("MemberId");
-
-                            b1.ToTable("Members");
-
-                            b1.WithOwner()
-                                .HasForeignKey("MemberId");
-                        });
-
-                    b.Navigation("Location");
 
                     b.Navigation("User");
                 });

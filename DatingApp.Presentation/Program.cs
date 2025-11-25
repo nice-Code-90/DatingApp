@@ -12,6 +12,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using DatingApp.Presentation.Helpers;
 
+
 var builder = WebApplication.CreateBuilder(args);
 
 
@@ -19,7 +20,10 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 builder.Services.AddDbContext<AppDbContext>(opt =>
 {
-    opt.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
+    opt.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"),
+        
+        sqlServerOptions => sqlServerOptions.UseNetTopologySuite()
+    );
 });
 builder.Services.AddCors();
 builder.Services.AddHttpClient(); 

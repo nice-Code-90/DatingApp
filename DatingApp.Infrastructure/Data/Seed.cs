@@ -1,21 +1,36 @@
 using System.Security.Cryptography;
 using System.Text;
+using System.Reflection;
 using System.Text.Json;
 using DatingApp.Application.DTOs;
 using DatingApp.Domain.Entities;
 using Microsoft.AspNetCore.Identity;
-using NetTopologySuite.Geometries;
 using Microsoft.EntityFrameworkCore;
 
 namespace DatingApp.Infrastructure.Data;
 
-public static class Seed
+public class Seed
 {
     public static async Task SeedUsers(UserManager<AppUser> userManager)
     {
         if (await userManager.Users.AnyAsync()) return;
 
-        var memberData = await File.ReadAllTextAsync("Data/UserSeedData.json");
+        var assembly = Assembly.GetExecutingAssembly();
+        var resourceName = "DatingApp.Infrastructure.Data.UserSeedData.json";
+        string memberData;
+
+        using (var stream = assembly.GetManifestResourceStream(resourceName))
+        {
+            if (stream == null)
+            {
+                Console.WriteLine($"Error: Could not find the embedded resource '{resourceName}'.");
+                return;
+            }
+            using (var reader = new StreamReader(stream, Encoding.UTF8))
+            {
+                memberData = await reader.ReadToEndAsync();
+            }
+        }
         var members = JsonSerializer.Deserialize<List<SeedUserDto>>(memberData);
 
         if (members == null)
@@ -23,9 +38,6 @@ public static class Seed
             Console.WriteLine("No members in seed data");
             return;
         }
-
-        // Létrehozunk egy GeometryFactory-t a Point objektumok gyártásához
-        var geometryFactory = new GeometryFactory(new PrecisionModel(), 4326);
 
         foreach (var member in members)
         {
@@ -49,8 +61,8 @@ public static class Seed
                     City = member.City,
                     Country = member.Country,
                     LastActive = member.LastActive,
-                    Created = member.Created,
-                    Location = geometryFactory.CreatePoint(new Coordinate(0, 0)) 
+                    Created = member.Created
+
                 }
             };
 

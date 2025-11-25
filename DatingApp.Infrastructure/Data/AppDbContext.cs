@@ -21,13 +21,6 @@ public class AppDbContext(DbContextOptions options) : IdentityDbContext<AppUser>
     {
         base.OnModelCreating(modelBuilder);
 
-        modelBuilder.Entity<Member>()
-            .OwnsOne(m => m.Location, p =>
-            {
-                p.Ignore(point => point.UserData);
-                p.Ignore(point => point.Coordinates);
-            });
-
         modelBuilder.Entity<Photo>().HasQueryFilter(x => x.IsApproved);
 
         modelBuilder.Entity<IdentityRole>()
@@ -61,5 +54,30 @@ public class AppDbContext(DbContextOptions options) : IdentityDbContext<AppUser>
         .WithMany(t => t.LikedByMembers)
         .HasForeignKey(s => s.TargetMemberId)
         .OnDelete(DeleteBehavior.NoAction);
+
+        var dateTimeConverter = new ValueConverter<DateTime, DateTime>(
+            v => v.ToUniversalTime(),
+            v => DateTime.SpecifyKind(v, DateTimeKind.Utc)
+        );
+
+        var nullableDateTimeConverter = new ValueConverter<DateTime?, DateTime?>(
+            v => v.HasValue ? v.Value.ToUniversalTime() : null,
+            v => v.HasValue ? DateTime.SpecifyKind(v.Value, DateTimeKind.Utc) : null
+        );
+
+        foreach (var entity in modelBuilder.Model.GetEntityTypes())
+        {
+            foreach (var property in entity.GetProperties())
+            {
+                if (property.ClrType == typeof(DateTime))
+                {
+                    property.SetValueConverter(dateTimeConverter);
+                }
+                else if (property.ClrType == typeof(DateTime?))
+                {
+                    property.SetValueConverter(nullableDateTimeConverter);
+                }
+            }
+        }
     }
 }
