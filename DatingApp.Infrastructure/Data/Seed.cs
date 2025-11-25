@@ -67,7 +67,8 @@ public class Seed
             };
 
             var location = await geocodingService.GetCoordinatesForAddressAsync(member.City, member.Country);
-            if (location != null)
+            // Csak akkor mentsük a lokációt, ha nem null ÉS a koordináták érvényes, véges számok.
+            if (location != null && double.IsFinite(location.X) && double.IsFinite(location.Y))
             {
                 user.Member.Location = location;
             }

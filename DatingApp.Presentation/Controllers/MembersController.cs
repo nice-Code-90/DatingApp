@@ -12,6 +12,7 @@ namespace DatingApp.Presentation.Controllers
     public class MembersController(IUnitOfWork uow,
     IPhotoService photoService) : BaseApiController
     {
+        [ProducesResponseType(typeof(PaginatedResult<MemberDto>), StatusCodes.Status200OK)]
         [HttpGet]
         public async Task<ActionResult<IReadOnlyList<Member>>> GetMembers(
             [FromQuery] MemberParams memberParams)
