@@ -6,12 +6,14 @@ using DatingApp.Application.Interfaces;
 using CloudinaryDotNet;
 using CloudinaryDotNet.Actions;
 using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Logging;
 
 namespace DatingApp.Infrastructure.Services;
 public class PhotoService : IPhotoService
 {
     private readonly Cloudinary _cloudinary;
-    public PhotoService(IOptions<CloudinarySettings> config)
+    private readonly ILogger<PhotoService> _logger;
+    public PhotoService(IOptions<CloudinarySettings> config, ILogger<PhotoService> logger)
     {
         var account = new Account(
         config.Value.CloudName,
@@ -19,6 +21,7 @@ public class PhotoService : IPhotoService
         config.Value.ApiSecret);
 
         _cloudinary = new Cloudinary(account);
+        _logger = logger;
     }
     public async Task<bool> DeletePhotoAsync(string publicId)
     {
@@ -26,7 +29,12 @@ public class PhotoService : IPhotoService
 
         var result = await _cloudinary.DestroyAsync(deleteParams);
 
-        return result.Result == "ok";
+        if (result.Result != "ok")
+        {
+            _logger.LogError("Failed to delete photo from Cloudinary. Result: {Result}", result.Result);
+            return false;
+        }
+        return true;
     }
 
     public async Task<PhotoUploadResult?> UploadPhotoAsync(Stream fileStream, string fileName)
@@ -44,6 +52,7 @@ public class PhotoService : IPhotoService
 
         if (uploadResult.Error != null)
         {
+            _logger.LogError(uploadResult.Error.Message, "Failed to upload photo to Cloudinary.");
             return null;
         }
 

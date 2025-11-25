@@ -2,6 +2,7 @@ using System.Net.Http.Json;
 using DatingApp.Application.Interfaces;
 using Microsoft.Extensions.Configuration;
 using NetTopologySuite.Geometries;
+using Microsoft.Extensions.Logging;
 
 namespace DatingApp.Infrastructure.Services;
 
@@ -10,12 +11,14 @@ public class GeocodingService : IGeocodingService
     private readonly HttpClient _httpClient;
     private readonly IConfiguration _config;
     private readonly GeometryFactory _geometryFactory;
+    private readonly ILogger<GeocodingService> _logger;
 
-    public GeocodingService(HttpClient httpClient, IConfiguration config)
+    public GeocodingService(HttpClient httpClient, IConfiguration config, ILogger<GeocodingService> logger)
     {
         _httpClient = httpClient;
         _config = config;
-        
+        _logger = logger;
+
         _geometryFactory = new GeometryFactory(new PrecisionModel(), 4326);
     }
 
@@ -24,7 +27,7 @@ public class GeocodingService : IGeocodingService
         var apiKey = _config["OpenCageApiKey"];
         if (string.IsNullOrEmpty(apiKey))
         {
-            
+            _logger.LogError("OpenCage API key is not configured.");
             return null;
         }
 
@@ -38,12 +41,15 @@ public class GeocodingService : IGeocodingService
             if (response?.Results?.Any() == true)
             {
                 var geometry = response.Results.First().Geometry;
-                return _geometryFactory.CreatePoint(new Coordinate(geometry.Lng, geometry.Lat));
+                if (geometry != null)
+                {
+                    return _geometryFactory.CreatePoint(new Coordinate(geometry.Lng, geometry.Lat));
+                }
             }
         }
         catch (Exception ex)
         {
-            
+            _logger.LogError(ex, "An error occurred while calling OpenCage Geocoding API.");
         }
         return null;
     }

@@ -7,15 +7,24 @@ using DatingApp.Application.Interfaces;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 
 namespace DatingApp.Infrastructure.Services;
-public class TokenService(IConfiguration config, UserManager<AppUser> userManager) : ITokenService
+public class TokenService(IConfiguration config, UserManager<AppUser> userManager, ILogger<TokenService> logger) : ITokenService
 {
     public async Task<string> CreateToken(AppUser user)
     {
-        var tokenKey = config["TokenKey"] ?? throw new Exception("Cannot get token key");
-        if (tokenKey.Length < 64)
-            throw new Exception("Your token key needs to be > 64 characters");
+        var tokenKey = config["TokenKey"];
+        if (string.IsNullOrEmpty(tokenKey))
+        {
+            logger.LogCritical("TokenKey is not configured in appsettings. Authentication will fail.");
+            throw new InvalidOperationException("TokenKey is not configured.");
+        }
+        if (tokenKey.Length < 64) {
+            logger.LogCritical("TokenKey is too short. It must be at least 64 characters long. Authentication will fail.");
+            throw new InvalidOperationException("TokenKey is too short.");
+        }
+
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(tokenKey));
 
         var claims = new List<Claim>
