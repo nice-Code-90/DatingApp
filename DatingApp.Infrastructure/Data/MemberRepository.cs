@@ -1,6 +1,7 @@
 using System;
 using DatingApp.Domain.Entities;
 using DatingApp.Application.Helpers;
+using NetTopologySuite.Geometries;
 using DatingApp.Application.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
@@ -22,7 +23,7 @@ public class MemberRepository(AppDbContext context) : IMemberRepository
             .SingleOrDefaultAsync(x => x.Id == id);
     }
 
-    public async Task<PaginatedResult<Member>> GetMembersAsync(MemberParams memberParams)
+    public async Task<PaginatedResult<Member>> GetMembersAsync(MemberParams memberParams, Point? currentUserLocation)
     {
 
         var query = context.Members.AsQueryable();
@@ -39,6 +40,19 @@ public class MemberRepository(AppDbContext context) : IMemberRepository
 
 
         query = query.Where(x => x.DateOfBirth >= minDob && x.DateOfBirth <= maxDob);
+
+        if (memberParams.Distance.HasValue && memberParams.Distance > 0 && currentUserLocation != null)
+        {
+            // A távolságot méterben kell megadni az IsWithinDistance metódusnak.
+            // A konverziós logikát egy külön segédfüggvény végzi.
+            var distanceInMeters = ConvertDistanceToMeters(memberParams.Distance.Value, memberParams.Unit);
+
+            // A földrajzi szűrés hozzáadása a lekérdezéshez.
+            // Ez egy hatékony, adatbázis-szintű művelet lesz.
+            query = query.Where(m => m.Location != null &&
+                                     m.Location.IsWithinDistance(currentUserLocation, distanceInMeters));
+        }
+
 
         query = memberParams.OrderBy switch
         {
@@ -66,5 +80,14 @@ public class MemberRepository(AppDbContext context) : IMemberRepository
     public void Update(Member member)
     {
         context.Entry(member).State = EntityState.Modified;
+    }
+
+    private static double ConvertDistanceToMeters(int distance, string unit)
+    {
+        return unit.ToLower() switch
+        {
+            "miles" => distance * 1609.34,
+            _ => distance * 1000.0 
+        };
     }
 }

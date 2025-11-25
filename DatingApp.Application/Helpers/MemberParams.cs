@@ -11,4 +11,7 @@ public class MemberParams : PagingParams
     public int MaxAge { get; set; } = 100;
     public string OrderBy { get; set; } = "lastActive";
 
+    public int? Distance { get; set; }
+    public string Unit { get; set; } = "km";
+
 }

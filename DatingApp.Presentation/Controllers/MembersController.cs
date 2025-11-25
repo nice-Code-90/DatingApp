@@ -18,11 +18,18 @@ namespace DatingApp.Presentation.Controllers
         {
 
             memberParams.CurrentMemberId = User.GetMemberId();
-
-            return Ok(await uow.MemberRepository.GetMembersAsync(memberParams));
+ 
+            var currentUser = await uow.MemberRepository.GetMemberByIdAsync(memberParams.CurrentMemberId);
+ 
+            if (currentUser == null) return Unauthorized("User profile not found.");
+ 
+            var members = await uow.MemberRepository.GetMembersAsync(memberParams, currentUser.Location);
+ 
+            return Ok(members);
+            
         }
 
-        [HttpGet("{id}")]  // localhost:5001/api/members/bob-id
+        [HttpGet("{id}")]  
         public async Task<ActionResult<Member>> GetMember(string id)
         {
             var member = await uow.MemberRepository.GetMemberByIdAsync(id);
