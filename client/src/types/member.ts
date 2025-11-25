@@ -1,3 +1,8 @@
+export type GeoLocation = {
+  type: string;
+  coordinates: [number, number];
+};
+
 export type Member = {
   id: string;
   dateOfBirth: string;
@@ -9,6 +14,7 @@ export type Member = {
   description?: string;
   city: string;
   country: string;
+  location?: GeoLocation;
 };
 export type Photo = {
   id: number;
@@ -31,4 +37,6 @@ export class MemberParams {
   pageNumber = 1;
   pageSize = 10;
   orderBy = 'lastActive';
+  distance?: number | undefined;
+  unit = 'km';
 }

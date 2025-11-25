@@ -23,6 +23,10 @@ export class MemberService {
     params = params.append('maxAge', memberParams.maxAge);
     params = params.append('orderBy', memberParams.orderBy);
     if (memberParams.gender) params = params.append('gender', memberParams.gender);
+    if (memberParams.distance) {
+      params = params.append('distance', memberParams.distance);
+      params = params.append('unit', memberParams.unit);
+    }
 
     return this.http
       .get<PaginatedResult<Member>>(this.baseUrl + 'members', {
@@ -31,7 +35,7 @@ export class MemberService {
       .pipe(
         tap(() => {
           localStorage.setItem('filters', JSON.stringify(memberParams));
-        })
+        }),
       );
   }
 
@@ -39,7 +43,7 @@ export class MemberService {
     return this.http.get<Member>(this.baseUrl + 'members/' + id).pipe(
       tap((member) => {
         this.member.set(member);
-      })
+      }),
     );
   }
 

@@ -46,4 +46,13 @@ export class FilterModal {
       this.memberParams().maxAge = this.memberParams().minAge;
     }
   }
+
+  toggleDistanceFilter(event: Event) {
+    const isChecked = (event.target as HTMLInputElement).checked;
+    if (isChecked) {
+      this.memberParams.update((params) => ({ ...params, distance: 50 }));
+    } else {
+      this.memberParams.update((params) => ({ ...params, distance: undefined }));
+    }
+  }
 }

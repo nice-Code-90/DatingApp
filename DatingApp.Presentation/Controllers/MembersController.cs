@@ -17,17 +17,19 @@ namespace DatingApp.Presentation.Controllers
         public async Task<ActionResult<IReadOnlyList<Member>>> GetMembers(
             [FromQuery] MemberParams memberParams)
         {
-
-            memberParams.CurrentMemberId = User.GetMemberId();
- 
-            var currentUser = await uow.MemberRepository.GetMemberByIdAsync(memberParams.CurrentMemberId);
- 
-            if (currentUser == null) return Unauthorized("User profile not found.");
- 
-            var members = await uow.MemberRepository.GetMembersAsync(memberParams, currentUser.Location);
- 
-            return Ok(members);
+            if (memberParams.Distance > 0)
+            {
+                memberParams.CurrentMemberId = User.GetMemberId();
+                var currentUser = await uow.MemberRepository.GetMemberByIdAsync(memberParams.CurrentMemberId);
+                if (currentUser?.Location == null) return BadRequest("Your location is not available to filter by distance.");
+                
+                var membersWithDistance = await uow.MemberRepository.GetMembersAsync(memberParams, currentUser.Location);
+                return Ok(membersWithDistance);
+            }
             
+            var members = await uow.MemberRepository.GetMembersAsync(memberParams, null);
+            
+            return Ok(members);
         }
 
         [HttpGet("{id}")]

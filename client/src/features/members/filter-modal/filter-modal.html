@@ -55,6 +55,34 @@
             <option value="lastActive">Last active</option>
           </select>
         </label>
+
+        <div class="flex flex-col gap-3">
+          <label class="flex justify-between items-center cursor-pointer">
+            <span class="font-semibold">Filter by distance</span>
+            <input
+              type="checkbox"
+              class="toggle toggle-primary"
+              (change)="toggleDistanceFilter($event)"
+              [checked]="memberParams().distance !== undefined"
+            />
+          </label>
+
+          @if (memberParams().distance !== undefined) {
+            <div class="flex flex-col gap-2">
+              <div class="flex justify-between items-center">
+                <span class="text-sm">Radius:</span>
+                <span class="font-bold text-primary">{{ memberParams().distance }} km</span>
+              </div>
+              <input
+                type="range"
+                min="1"
+                max="200"
+                class="range range-primary"
+                [(ngModel)]="memberParams().distance"
+              />
+            </div>
+          }
+        </div>
       </div>
     </div>
 
