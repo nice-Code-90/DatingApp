@@ -3,6 +3,7 @@ using System.Text;
 using System.Reflection;
 using System.Text.Json;
 using DatingApp.Application.DTOs;
+using DatingApp.Application.Interfaces;
 using DatingApp.Domain.Entities;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -11,7 +12,7 @@ namespace DatingApp.Infrastructure.Data;
 
 public class Seed
 {
-    public static async Task SeedUsers(UserManager<AppUser> userManager)
+    public static async Task SeedUsers(UserManager<AppUser> userManager, IGeocodingService geocodingService)
     {
         if (await userManager.Users.AnyAsync()) return;
 
@@ -62,9 +63,14 @@ public class Seed
                     Country = member.Country,
                     LastActive = member.LastActive,
                     Created = member.Created
-
                 }
             };
+
+            var location = await geocodingService.GetCoordinatesForAddressAsync(member.City, member.Country);
+            if (location != null)
+            {
+                user.Member.Location = location;
+            }
 
             user.Member.Photos.Add(new Photo
             {

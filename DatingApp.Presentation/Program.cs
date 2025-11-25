@@ -111,9 +111,10 @@ try
 {
     var context = services.GetRequiredService<AppDbContext>();
     var userManager = services.GetRequiredService<UserManager<AppUser>>();
+    var geocodingService = services.GetRequiredService<IGeocodingService>();
     await context.Database.MigrateAsync();
     await context.Connections.ExecuteDeleteAsync();
-    await Seed.SeedUsers(userManager);
+    await Seed.SeedUsers(userManager, geocodingService);
 }
 catch (Exception ex)
 {
