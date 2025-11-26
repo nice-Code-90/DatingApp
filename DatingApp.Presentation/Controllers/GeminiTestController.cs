@@ -1,11 +1,5 @@
-using System;
-using System.Linq;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using Google.GenAI;
-using Google.GenAI.Types;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Configuration;
 
 namespace API.Controllers
 {

@@ -10,7 +10,7 @@ namespace DatingApp.Presentation.Controllers
 {
     [Authorize]
     public class MembersController(IUnitOfWork uow,
-    IPhotoService photoService, IGeocodingService geocodingService) : BaseApiController
+    IPhotoService photoService, IMemberService memberService) : BaseApiController
     {
         [ProducesResponseType(typeof(PaginatedResult<MemberDto>), StatusCodes.Status200OK)]
         [HttpGet]
@@ -54,30 +54,9 @@ namespace DatingApp.Presentation.Controllers
         [HttpPut]
         public async Task<ActionResult> UpdateMember(MemberUpdateDto memberUpdateDto)
         {
-            var memberId = User.GetMemberId();
-
-            var member = await uow.MemberRepository.GetMemberForUpdate(memberId);
-            if (member == null) return BadRequest("Couldn't get member");
-
+            var result = await memberService.UpdateMemberAsync(User.GetMemberId(), memberUpdateDto);
             
-            var originalCity = member.City;
-            var originalCountry = member.Country;
-
-            member.DisplayName = memberUpdateDto.DisplayName ?? member.DisplayName;
-            member.Description = memberUpdateDto.Description ?? member.Description;
-            member.City = memberUpdateDto.City ?? member.City;
-            member.Country = memberUpdateDto.Country ?? member.Country;
-            member.User.DisplayName = memberUpdateDto.DisplayName ?? member.User.DisplayName;
-            
-            
-            if (member.City != originalCity || member.Country != originalCountry)
-            {
-                member.Location = await geocodingService.GetCoordinatesForAddressAsync(member.City, member.Country);
-            }
-
-
-            uow.MemberRepository.Update(member);
-            if (await uow.Complete()) return NoContent();
+            if (result) return NoContent();
 
             return BadRequest("Failed to update member");
 
@@ -98,7 +77,7 @@ namespace DatingApp.Presentation.Controllers
                 Url = result.Url,
                 PublicId = result.PublicId,
                 MemberId = User.GetMemberId(),
-                IsApproved = true
+                IsApproved = false
 
             };
 
@@ -111,20 +90,9 @@ namespace DatingApp.Presentation.Controllers
         [HttpPut("set-main-photo/{photoId}")]
         public async Task<ActionResult> SetMainPhoto(int photoId)
         {
-            var member = await uow.MemberRepository.GetMemberForUpdate(User.GetMemberId());
-
-            if (member == null) return BadRequest("Cannot get member from token");
-
-            var photo = member.Photos.SingleOrDefault(x => x.Id == photoId);
-
-            if (member.ImageUrl == photo?.Url || photo == null)
-            {
-                return BadRequest("Cannot set this as main image");
-            }
-            member.ImageUrl = photo.Url;
-            member.User.ImageUrl = photo.Url;
-
-            if (await uow.Complete()) return NoContent();
+            var result = await memberService.SetMainPhotoAsync(User.GetMemberId(), photoId);
+            
+            if (result) return NoContent();
 
             return BadRequest("Problem setting main photo");
         }
@@ -132,28 +100,11 @@ namespace DatingApp.Presentation.Controllers
         [HttpDelete("delete-photo/{photoId}")]
         public async Task<ActionResult> DeletePhoto(int photoId)
         {
-            var member = await uow.MemberRepository.GetMemberForUpdate(User.GetMemberId());
-
-            if (member == null) return BadRequest("Cannot get member from token");
-
-            var photo = member.Photos.SingleOrDefault(x => x.Id == photoId);
-            if (photo == null || photo.Url == member.ImageUrl)
-            {
-                return BadRequest("This photo cannot be deleted");
-            }
-            if (photo.PublicId != null)
-            {
-                var result = await photoService.DeletePhotoAsync(photo.PublicId);
-                if (!result) return BadRequest("Problem deleting photo from cloud");
-            }
-
-            member.Photos.Remove(photo);
-
-            if (await uow.Complete()) return Ok();
+            var result = await photoService.DeleteMemberPhotoAsync(User.GetMemberId(), photoId);
+            
+            if (result) return Ok();
 
             return BadRequest("Problem deleting the photo");
         }
     }
-
-
 }

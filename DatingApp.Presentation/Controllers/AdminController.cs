@@ -1,32 +1,19 @@
-using System;
-using DatingApp.Domain.Entities;
+using DatingApp.Application.DTOs;
 using DatingApp.Application.Interfaces;
+using DatingApp.Domain.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace DatingApp.Presentation.Controllers;
 
-public class AdminController(UserManager<AppUser> userManager, IUnitOfWork uow, IPhotoService photoService) : BaseApiController
+public class AdminController(UserManager<AppUser> userManager, IUnitOfWork uow, IPhotoService photoService, IAdminService adminService) : BaseApiController
 {
     [Authorize(Policy = "RequireAdminRole")]
     [HttpGet("users-with-roles")]
-    public async Task<ActionResult> GetUsersWithRoles()
+    public async Task<ActionResult<IEnumerable<UserWithRolesDto>>> GetUsersWithRoles()
     {
-        var users = await userManager.Users.ToListAsync();
-        var userList = new List<object>();
-        foreach (var user in users)
-        {
-            var roles = await userManager.GetRolesAsync(user);
-            userList.Add(new
-            {
-                user.Id,
-                user.Email,
-                Roles = roles.ToList()
-            });
-        }
-        return Ok(userList);
+        return Ok(await adminService.GetUsersWithRolesAsync());
     }
 
     [Authorize(Policy = "RequireAdminRole")]
@@ -54,7 +41,7 @@ public class AdminController(UserManager<AppUser> userManager, IUnitOfWork uow, 
 
     [Authorize(Policy = "ModeratePhotoRole")]
     [HttpGet("photos-to-moderate")]
-    public async Task<ActionResult<IEnumerable<Photo>>> GetPhotosForModeration()
+    public async Task<ActionResult<IEnumerable<PhotoForApprovalDto>>> GetPhotosForModeration()
     {
         return Ok(await uow.PhotoRepository.GetUnapprovedPhotos());
     }
@@ -88,25 +75,18 @@ public class AdminController(UserManager<AppUser> userManager, IUnitOfWork uow, 
     public async Task<ActionResult> RejectPhoto(int photoId)
     {
         var photo = await uow.PhotoRepository.GetPhotoById(photoId);
-
         if (photo == null) return BadRequest("Could not get photo from db");
 
         if (photo.PublicId != null)
         {
             var result = await photoService.DeletePhotoAsync(photo.PublicId);
-
-            if (result)
-            {
-                uow.PhotoRepository.RemovePhoto(photo);
-            }
-        }
-        else
-        {
-            uow.PhotoRepository.RemovePhoto(photo);
+            if (!result) return BadRequest("Failed to delete photo from cloud storage. Please try again.");
         }
 
-        await uow.Complete();
+        uow.PhotoRepository.RemovePhoto(photo);
 
-        return Ok();
+        if (await uow.Complete()) return Ok();
+
+        return BadRequest("Failed to reject photo.");
     }
 }

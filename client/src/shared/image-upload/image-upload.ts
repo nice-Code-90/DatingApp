@@ -38,6 +38,16 @@ export class ImageUpload {
     }
   }
 
+  onFileSelected(event: Event) {
+    const element = event.currentTarget as HTMLInputElement;
+    const fileList: FileList | null = element.files;
+    if (fileList && fileList.length > 0) {
+      const file = fileList[0];
+      this.previewImage(file);
+      this.fileToUpload = file;
+    }
+  }
+
   onCancel() {
     this.fileToUpload = null;
     this.imageSrc.set(null);

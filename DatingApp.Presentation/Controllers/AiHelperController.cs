@@ -1,7 +1,5 @@
 using System.Security.Claims;
-using System.Threading.Tasks;
 using DatingApp.Application.Interfaces;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DatingApp.Presentation.Controllers

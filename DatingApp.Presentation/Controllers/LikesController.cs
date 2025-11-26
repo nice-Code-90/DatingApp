@@ -1,4 +1,3 @@
-using System;
 using DatingApp.Domain.Entities;
 using DatingApp.Application.Extensions;
 using DatingApp.Application.Helpers;

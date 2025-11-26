@@ -1,35 +1,20 @@
-using System;
 using DatingApp.Application.DTOs;
 using DatingApp.Domain.Entities;
 using DatingApp.Application.Extensions;
 using DatingApp.Application.Helpers;
 using DatingApp.Application.Interfaces;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Infrastructure;
 
 namespace DatingApp.Presentation.Controllers;
 
-public class MessagesController(IUnitOfWork uow) : BaseApiController
+public class MessagesController(IUnitOfWork uow, IMessageService messageService) : BaseApiController
 {
     [HttpPost]
     public async Task<ActionResult<MessageDto>> CreateMessage(CreateMessageDto createMessageDto)
     {
-        var sender = await uow.MemberRepository.GetMemberByIdAsync(User.GetMemberId());
-        var recipient = await uow.MemberRepository.GetMemberByIdAsync(createMessageDto.RecipientId);
+        var messageDto = await messageService.CreateMessageAsync(User.GetMemberId(), createMessageDto);
 
-        if (recipient == null || sender == null || sender.Id == createMessageDto.RecipientId)
-        {
-            return BadRequest("Cannot send this message");
-        }
-        var message = new Message
-        {
-            SenderId = sender.Id,
-            RecipientId = recipient.Id,
-            Content = createMessageDto.Content
-        };
-
-        uow.MessageRepository.AddMessage(message);
-        if (await uow.Complete()) return message.ToDto();
+        if (messageDto != null) return Ok(messageDto);
 
         return BadRequest("Failed to send message");
     }
@@ -52,21 +37,9 @@ public class MessagesController(IUnitOfWork uow) : BaseApiController
     [HttpDelete("{id}")]
     public async Task<ActionResult> DeleteMessage(string id)
     {
-        var memberId = User.GetMemberId();
-        var message = await uow.MessageRepository.GetMessage(id);
-        if (message == null) return BadRequest("Cannot delete this message");
+        var result = await messageService.DeleteMessageAsync(User.GetMemberId(), id);
 
-        if (message.SenderId != memberId && message.RecipientId != memberId)
-            return BadRequest("You cannot delete this message");
-
-        if (message.SenderId == memberId) message.SenderDeleted = true;
-        if (message.RecipientId == memberId) message.RecipientDeleted = true;
-
-        if (message is { SenderDeleted: true, RecipientDeleted: true })
-        {
-            uow.MessageRepository.DeleteMessage(message);
-        }
-        if (await uow.Complete()) return Ok();
+        if (result) return Ok();
 
         return BadRequest("Problem deleting the message");
 

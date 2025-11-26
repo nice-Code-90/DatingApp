@@ -1,6 +1,3 @@
-using System;
-using System.Security.Cryptography;
-using System.Text;
 using DatingApp.Application.DTOs;
 using DatingApp.Domain.Entities;
 using DatingApp.Application.Extensions;
@@ -14,7 +11,7 @@ namespace DatingApp.Presentation.Controllers;
 
 public class AccountController(UserManager<AppUser> userManager, ITokenService tokenService, IGeocodingService geocodingService) : BaseApiController
 {
-    [HttpPost("register")] // api/account/register
+    [HttpPost("register")] 
     public async Task<ActionResult<UserDto>> Register(RegisterDto registerDto)
     {
         if (await userManager.Users.AnyAsync(x => x.Email == registerDto.Email)) return BadRequest("Email is taken");
@@ -48,12 +45,7 @@ public class AccountController(UserManager<AppUser> userManager, ITokenService t
         }
         await userManager.AddToRoleAsync(user, "Member");
 
-        await SetRefreshTokenCookie(user);
-
-
-        return await user.ToDto(tokenService);
-
-
+        return await CreateUserDtoWithCookie(user);
     }
 
     [HttpPost("login")]
@@ -68,9 +60,7 @@ public class AccountController(UserManager<AppUser> userManager, ITokenService t
 
         if (!result) return Unauthorized("Invalid password"); // only provide info for dev purposes
 
-        await SetRefreshTokenCookie(user);
-        return await user.ToDto(tokenService);
-
+        return await CreateUserDtoWithCookie(user);
     }
 
     [HttpPost("refresh-token")]
@@ -87,11 +77,15 @@ public class AccountController(UserManager<AppUser> userManager, ITokenService t
 
         if (user == null) return Unauthorized();
 
-        await SetRefreshTokenCookie(user);
-
-        return await user.ToDto(tokenService);
+        return await CreateUserDtoWithCookie(user);
     }
 
+    private async Task<ActionResult<UserDto>> CreateUserDtoWithCookie(AppUser user)
+    {
+        await SetRefreshTokenCookie(user);
+        return await user.ToDto(tokenService);
+    }
+    
     private async Task SetRefreshTokenCookie(AppUser user)
     {
         var refreshToken = tokenService.GenerateRefreshToken();

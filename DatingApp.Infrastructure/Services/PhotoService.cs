@@ -10,15 +10,16 @@ namespace DatingApp.Infrastructure.Services;
 public class PhotoService : IPhotoService
 {
     private readonly Cloudinary _cloudinary;
+    private readonly IUnitOfWork _uow;
     private readonly ILogger<PhotoService> _logger;
-    public PhotoService(IOptions<CloudinarySettings> config, ILogger<PhotoService> logger)
+    public PhotoService(IOptions<CloudinarySettings> config, ILogger<PhotoService> logger, IUnitOfWork uow)
     {
         var account = new Account(
         config.Value.CloudName,
         config.Value.ApiKey,
         config.Value.ApiSecret);
-
         _cloudinary = new Cloudinary(account);
+        _uow = uow;
         _logger = logger;
     }
     public async Task<bool> DeletePhotoAsync(string publicId)
@@ -59,5 +60,27 @@ public class PhotoService : IPhotoService
             PublicId = uploadResult.PublicId,
             Url = uploadResult.SecureUrl.ToString()
         };
+    }
+
+    public async Task<bool> DeleteMemberPhotoAsync(string memberId, int photoId)
+    {
+        var member = await _uow.MemberRepository.GetMemberForUpdate(memberId);
+        if (member == null) return false;
+
+        var photo = member.Photos.SingleOrDefault(x => x.Id == photoId);
+        if (photo == null || photo.Url == member.ImageUrl)
+        {
+            return false; // Cannot delete main photo or non-existent photo
+        }
+
+        if (photo.PublicId != null)
+        {
+            var result = await DeletePhotoAsync(photo.PublicId);
+            if (!result) return false; // Failed to delete from Cloudinary
+        }
+
+        member.Photos.Remove(photo);
+
+        return await _uow.Complete();
     }
 }
