@@ -10,7 +10,7 @@ namespace DatingApp.Presentation.Controllers
 {
     [Authorize]
     public class MembersController(IUnitOfWork uow,
-    IPhotoService photoService) : BaseApiController
+    IPhotoService photoService, IGeocodingService geocodingService) : BaseApiController
     {
         [ProducesResponseType(typeof(PaginatedResult<MemberDto>), StatusCodes.Status200OK)]
         [HttpGet]
@@ -59,12 +59,21 @@ namespace DatingApp.Presentation.Controllers
             var member = await uow.MemberRepository.GetMemberForUpdate(memberId);
             if (member == null) return BadRequest("Couldn't get member");
 
+            
+            var originalCity = member.City;
+            var originalCountry = member.Country;
+
             member.DisplayName = memberUpdateDto.DisplayName ?? member.DisplayName;
             member.Description = memberUpdateDto.Description ?? member.Description;
             member.City = memberUpdateDto.City ?? member.City;
             member.Country = memberUpdateDto.Country ?? member.Country;
-
             member.User.DisplayName = memberUpdateDto.DisplayName ?? member.User.DisplayName;
+            
+            
+            if (member.City != originalCity || member.Country != originalCountry)
+            {
+                member.Location = await geocodingService.GetCoordinatesForAddressAsync(member.City, member.Country);
+            }
 
 
             uow.MemberRepository.Update(member);

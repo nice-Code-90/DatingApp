@@ -43,12 +43,10 @@ public class MemberRepository(AppDbContext context) : IMemberRepository
 
         if (memberParams.Distance.HasValue && memberParams.Distance > 0 && currentUserLocation != null)
         {
-            // A távolságot méterben kell megadni az IsWithinDistance metódusnak.
-            // A konverziós logikát egy külön segédfüggvény végzi.
+            
             var distanceInMeters = ConvertDistanceToMeters(memberParams.Distance.Value, memberParams.Unit);
 
-            // A földrajzi szűrés hozzáadása a lekérdezéshez.
-            // Ez egy hatékony, adatbázis-szintű művelet lesz.
+            
             query = query.Where(m => m.Location != null &&
                                      m.Location.IsWithinDistance(currentUserLocation, distanceInMeters));
         }
