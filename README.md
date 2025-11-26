@@ -5,6 +5,18 @@ This project is a feature-rich, full-stack web application built with a .NET bac
 **Live Demo:** [https://dating-2025.azurewebsites.net/](https://dating-2025.azurewebsites.net/)
 *(Note: The free-tier Azure App Service may experience a cold start, leading to a slower initial load time.)*
 
+## Application Preview
+
+Here's a glimpse of the application in action.
+
+![Member listing page](demo/filtering.gif)
+
+_Member listing with filtering options._
+
+![Member listing page](demo/home.gif)
+
+_Home page_
+
 ## Key Features
 
 *   **User Authentication & Profile Management:** Secure user registration and login using JWT (JSON Web Token) authentication. Users can create and edit their profiles, including a personal description, photos, and location details.
