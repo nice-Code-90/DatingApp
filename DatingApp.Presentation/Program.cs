@@ -68,6 +68,8 @@ builder.Services.AddCors();
 builder.Services.AddHttpClient(); 
 
 builder.Services.Configure<CloudinarySettings>(builder.Configuration.GetSection("CloudinarySettings"));
+builder.Services.Configure<OpenCageSettings>(builder.Configuration.GetSection("OpenCageSettings")); 
+builder.Services.Configure<GeminiSettings>(builder.Configuration.GetSection("GeminiSettings")); 
 
 builder.Services.AddSignalR();
 builder.Services.AddSingleton<PresenceTracker>();

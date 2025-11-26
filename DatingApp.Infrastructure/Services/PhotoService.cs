@@ -1,5 +1,3 @@
-using System;
-using System.IO;
 using DatingApp.Application.DTOs;
 using DatingApp.Application.Helpers;
 using DatingApp.Application.Interfaces;

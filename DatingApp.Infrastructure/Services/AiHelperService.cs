@@ -1,25 +1,22 @@
-using System;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using DatingApp.Application.Interfaces;
 using Microsoft.Extensions.Logging;
 using Google.GenAI;
-using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Options;
 
 namespace DatingApp.Infrastructure.Services
 {
     public class AiHelperService : IAiHelperService
     {
         private readonly IUnitOfWork _unitOfWork;
-        private readonly IConfiguration _config;
         private readonly ILogger<AiHelperService> _logger;
+        private readonly GeminiSettings _geminiSettings;
 
-        public AiHelperService(IUnitOfWork unitOfWork, IConfiguration config, ILogger<AiHelperService> logger)
+        public AiHelperService(IUnitOfWork unitOfWork, IOptions<GeminiSettings> config, ILogger<AiHelperService> logger)
         {
             _unitOfWork = unitOfWork;
-            _config = config;
             _logger = logger;
+            _geminiSettings = config.Value;
         }
 
         public async Task<string> GetChatSuggestion(string currentUserId, string recipientId)
@@ -50,15 +47,14 @@ namespace DatingApp.Infrastructure.Services
             promptBuilder.AppendLine($"\nBased on the information above, suggest a short, engaging, 2-3 sentence message for '{currentUser.DisplayName}' to send to continue the conversation. Be friendly and creative. Do not include a greeting like 'Hi' or 'Hello'.");
 
 
-            var apiKey = _config["GeminiApiKey"];
-            if (string.IsNullOrEmpty(apiKey))
+            if (string.IsNullOrEmpty(_geminiSettings.ApiKey))
             {
                 _logger.LogError("Gemini API key not found in configuration.");
                 return "Sorry, AI suggestion is currently unavailable due to missing API key.";
             }
             
             try {
-                var client = new Client(apiKey: apiKey);
+                var client = new Client(apiKey: _geminiSettings.ApiKey);
 
                 var response = await client.Models.GenerateContentAsync("gemini-2.5-flash", promptBuilder.ToString());
                 var suggestion = response.Candidates?.FirstOrDefault()?.Content?.Parts?.FirstOrDefault()?.Text;
