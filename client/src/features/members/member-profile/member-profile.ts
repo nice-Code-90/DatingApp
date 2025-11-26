@@ -59,9 +59,4 @@ export class MemberProfile {
       },
     });
   }
-  ngOnDestroy() {
-    if (this.memberService.editMode()) {
-      this.memberService.editMode.set(false);
-    }
-  }
 }

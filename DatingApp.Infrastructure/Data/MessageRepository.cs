@@ -50,22 +50,11 @@ public class MessageRepository(AppDbContext context) : IMessageRepository
             .FirstOrDefaultAsync(x => x.Name == groupName);
     }
 
-    public async Task<PaginatedResult<MessageDto>> GetMessagesForMember(MessageParams messageParams)
+    public IQueryable<Message> GetMessagesAsQueryable()
     {
-        var query = context.Messages
+        return context.Messages
             .OrderByDescending(x => x.MessageSent)
             .AsQueryable();
-
-        query = messageParams.Container switch
-        {
-            "Outbox" => query.Where(x => x.SenderId == messageParams.MemberId
-                && x.SenderDeleted == false),
-            _ => query.Where(x => x.RecipientId == messageParams.MemberId && x.RecipientDeleted == false)
-        };
-
-        var messageQuery = query.Select(MessageExtensions.ToDtoProjection());
-
-        return await PaginationHelper.CreateAsync(messageQuery, messageParams.PageNumber, messageParams.PageSize);
     }
 
     public async Task<IReadOnlyList<MessageDto>> GetMessageThread(string currentMemberId, string recipientId)

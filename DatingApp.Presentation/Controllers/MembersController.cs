@@ -19,16 +19,17 @@ namespace DatingApp.Presentation.Controllers
         {
             if (memberParams.Distance > 0)
             {
-                memberParams.CurrentMemberId = User.GetMemberId();
-                var currentUser = await uow.MemberRepository.GetMemberByIdAsync(memberParams.CurrentMemberId);
+                var currentUserId = User.GetMemberId();
+                memberParams.CurrentMemberId = currentUserId;
+                var currentUser = await uow.MemberRepository.GetMemberByIdAsync(currentUserId);
                 if (currentUser?.Location == null) return BadRequest("Your location is not available to filter by distance.");
                 
-                var membersWithDistance = await uow.MemberRepository.GetMembersAsync(memberParams, currentUser.Location);
+                var membersWithDistance = await memberService.GetMembersWithFiltersAsync(memberParams, currentUser.Location);
                 return Ok(membersWithDistance);
             }
             
-            var members = await uow.MemberRepository.GetMembersAsync(memberParams, null);
-            
+            memberParams.CurrentMemberId = User.GetMemberId();
+            var members = await memberService.GetMembersWithFiltersAsync(memberParams, null);
             return Ok(members);
         }
 

@@ -123,6 +123,7 @@ builder.Services.AddScoped<IAiHelperService, AiHelperService>();
 builder.Services.AddScoped<IMemberService, MemberService>();
 builder.Services.AddScoped<IMessageService, MessageService>();
 builder.Services.AddScoped<IAdminService, AdminService>();
+builder.Services.AddScoped<ILikesService, LikesService>();
 builder.Services.AddScoped<IGeocodingService, GeocodingService>(); 
 
 builder.Services.AddScoped<LogUserActivity>();

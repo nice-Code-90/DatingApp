@@ -25,7 +25,7 @@ public class MessagesController(IUnitOfWork uow, IMessageService messageService)
     {
         messageParams.MemberId = User.GetMemberId();
 
-        return await uow.MessageRepository.GetMessagesForMember(messageParams);
+        return Ok(await messageService.GetMessagesForMemberAsync(messageParams));
     }
 
     [HttpGet("thread/{recipientId}")]

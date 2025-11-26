@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace DatingApp.Presentation.Controllers;
 
-public class LikesController(IUnitOfWork uow) : BaseApiController
+public class LikesController(IUnitOfWork uow, ILikesService likesService) : BaseApiController
 {
     [HttpPost("{targetMemberId}")]
     public async Task<ActionResult> ToggleLike(string targetMemberId)
@@ -48,8 +48,7 @@ public class LikesController(IUnitOfWork uow) : BaseApiController
         [FromQuery] LikesParams likesParams)
     {
         likesParams.MemberId = User.GetMemberId();
-        var members = await uow.LikesRepository.GetMemberLikes(likesParams);
 
-        return Ok(members);
+        return Ok(await likesService.GetMemberLikesAsync(likesParams));
     }
 }

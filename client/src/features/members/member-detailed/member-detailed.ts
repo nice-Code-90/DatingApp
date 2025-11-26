@@ -1,4 +1,4 @@
-import { Component, computed, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, inject, OnDestroy, OnInit, signal } from '@angular/core';
 
 import {
   ActivatedRoute,
@@ -52,5 +52,11 @@ export class MemberDetailed implements OnInit {
         this.title.set(this.route.firstChild?.snapshot?.title);
       },
     });
+  }
+
+  ngOnDestroy(): void {
+    if (this.memberService.editMode()) {
+      this.memberService.editMode.set(false);
+    }
   }
 }

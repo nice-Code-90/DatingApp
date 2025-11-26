@@ -1,7 +1,9 @@
 using DatingApp.Application.DTOs;
 using DatingApp.Application.Extensions;
 using DatingApp.Application.Interfaces;
+using DatingApp.Application.Helpers;
 using DatingApp.Domain.Entities;
+using DatingApp.Infrastructure.Data;
 
 namespace DatingApp.Infrastructure.Services;
 
@@ -48,5 +50,22 @@ public class MessageService(IUnitOfWork uow) : IMessageService
         }
 
         return await uow.Complete();
+    }
+
+    public async Task<PaginatedResult<MessageDto>> GetMessagesForMemberAsync(MessageParams messageParams)
+    {
+        var query = uow.MessageRepository.GetMessagesAsQueryable();
+
+        query = messageParams.Container switch
+        {
+            "Outbox" => query.Where(x => x.SenderId == messageParams.MemberId
+                && x.SenderDeleted == false),
+            _ => query.Where(x => x.RecipientId == messageParams.MemberId 
+                && x.RecipientDeleted == false)
+        };
+
+        var messageQuery = query.Select(MessageExtensions.ToDtoProjection());
+
+        return await PaginationHelper.CreateAsync(messageQuery, messageParams.PageNumber, messageParams.PageSize);
     }
 }

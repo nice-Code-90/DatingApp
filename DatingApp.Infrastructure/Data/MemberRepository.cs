@@ -23,44 +23,9 @@ public class MemberRepository(AppDbContext context) : IMemberRepository
             .SingleOrDefaultAsync(x => x.Id == id);
     }
 
-    public async Task<PaginatedResult<Member>> GetMembersAsync(MemberParams memberParams, Point? currentUserLocation)
+    public IQueryable<Member> GetMembersAsQueryable()
     {
-
-        var query = context.Members.AsQueryable();
-
-        query = query.Where(x => x.Id != memberParams.CurrentMemberId);
-
-        if (memberParams.Gender != null)
-        {
-            query = query.Where(x => x.Gender == memberParams.Gender);
-        }
-
-        var minDob = DateOnly.FromDateTime(DateTime.Today.AddYears(-memberParams.MaxAge - 1));
-        var maxDob = DateOnly.FromDateTime(DateTime.Today.AddYears(-memberParams.MinAge));
-
-
-        query = query.Where(x => x.DateOfBirth >= minDob && x.DateOfBirth <= maxDob);
-
-        if (memberParams.Distance.HasValue && memberParams.Distance > 0 && currentUserLocation != null)
-        {
-            
-            var distanceInMeters = ConvertDistanceToMeters(memberParams.Distance.Value, memberParams.Unit);
-
-            
-            query = query.Where(m => m.Location != null &&
-                                     m.Location.IsWithinDistance(currentUserLocation, distanceInMeters));
-        }
-
-
-        query = memberParams.OrderBy switch
-        {
-            "created" => query.OrderByDescending(x => x.Created),
-            _ => query.OrderByDescending(x => x.LastActive),
-
-        };
-
-        return await PaginationHelper.CreateAsync
-        (query, memberParams.PageNumber, memberParams.PageSize);
+        return context.Members.AsQueryable();
     }
 
     public async Task<IReadOnlyList<Photo>> GetPhotosForMemberAsync(string memberId, bool isCurrentUser)
@@ -78,14 +43,5 @@ public class MemberRepository(AppDbContext context) : IMemberRepository
     public void Update(Member member)
     {
         context.Entry(member).State = EntityState.Modified;
-    }
-
-    private static double ConvertDistanceToMeters(int distance, string unit)
-    {
-        return unit.ToLower() switch
-        {
-            "miles" => distance * 1609.34,
-            _ => distance * 1000.0 
-        };
     }
 }

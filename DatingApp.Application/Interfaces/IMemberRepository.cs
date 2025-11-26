@@ -8,8 +8,8 @@ namespace DatingApp.Application.Interfaces;
 public interface IMemberRepository
 {
     void Update(Member member);
-    Task<PaginatedResult<Member>> GetMembersAsync(MemberParams memberParams, Point? currentUserLocation);
     Task<Member?> GetMemberByIdAsync(string id);
+    IQueryable<Member> GetMembersAsQueryable();
     Task<IReadOnlyList<Photo>> GetPhotosForMemberAsync(string memberId, bool isCurrentUser);
     Task<Member?> GetMemberForUpdate(string id);
 }
