@@ -9,7 +9,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace DatingApp.Presentation.Controllers;
 
-public class AccountController(UserManager<AppUser> userManager, ITokenService tokenService, IGeocodingService geocodingService) : BaseApiController
+public class AccountController(UserManager<AppUser> userManager, ITokenService tokenService, IGeocodingService geocodingService, ICacheService cacheService) : BaseApiController
 {
     [HttpPost("register")] 
     public async Task<ActionResult<UserDto>> Register(RegisterDto registerDto)
@@ -44,6 +44,8 @@ public class AccountController(UserManager<AppUser> userManager, ITokenService t
             return ValidationProblem();
         }
         await userManager.AddToRoleAsync(user, "Member");
+
+        await cacheService.RemoveByPrefixAsync("members:");
 
         return await CreateUserDtoWithCookie(user);
     }

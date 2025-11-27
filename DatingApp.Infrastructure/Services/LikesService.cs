@@ -5,10 +5,18 @@ using DatingApp.Infrastructure.Data;
 
 namespace DatingApp.Infrastructure.Services;
 
-public class LikesService(IUnitOfWork uow) : ILikesService
+public class LikesService(IUnitOfWork uow, ICacheService cacheService) : ILikesService
 {
     public async Task<PaginatedResult<Member>> GetMemberLikesAsync(LikesParams likesParams)
     {
+        var cacheKey = $"likes:{likesParams.MemberId}:{likesParams.Predicate}";
+        var cachedResult = await cacheService.GetAsync<PaginatedResult<Member>>(cacheKey);
+
+        if (cachedResult != null)
+        {
+            return cachedResult;
+        }
+
         var query = uow.LikesRepository.GetLikesAsQueryable();
         IQueryable<Member> result;
 
@@ -33,6 +41,38 @@ public class LikesService(IUnitOfWork uow) : ILikesService
                 break;
         }
 
-        return await PaginationHelper.CreateAsync(result, likesParams.PageNumber, likesParams.PageSize);
+        var paginatedResult = await PaginationHelper.CreateAsync(result, likesParams.PageNumber, likesParams.PageSize);
+
+        await cacheService.SetAsync(cacheKey, paginatedResult, TimeSpan.FromMinutes(5));
+
+        return paginatedResult;
+    }
+
+    public async Task<bool> ToggleLikeAsync(string sourceMemberId, string targetMemberId)
+    {
+        var existingLike = await uow.LikesRepository.GetMemberLike(sourceMemberId, targetMemberId);
+
+        if (existingLike == null)
+        {
+            var like = new MemberLike
+            {
+                SourceMemberId = sourceMemberId,
+                TargetMemberId = targetMemberId
+            };
+            uow.LikesRepository.AddLike(like);
+        }
+        else
+        {
+            uow.LikesRepository.DeleteLike(existingLike);
+        }
+
+        var result = await uow.Complete();
+
+        if (!result) return false;
+
+        await cacheService.RemoveByPrefixAsync($"likes:{sourceMemberId}");
+        await cacheService.RemoveByPrefixAsync($"likes:{targetMemberId}");
+
+        return true;
     }
 }

@@ -7,7 +7,7 @@ using NetTopologySuite.Geometries;
 
 namespace DatingApp.Infrastructure.Services;
 
-public class MemberService(IUnitOfWork uow, IGeocodingService geocodingService) : IMemberService
+public class MemberService(IUnitOfWork uow, IGeocodingService geocodingService, ICacheService cacheService) : IMemberService
 {
     public async Task<bool> SetMainPhotoAsync(string memberId, int photoId)
     {
@@ -20,7 +20,10 @@ public class MemberService(IUnitOfWork uow, IGeocodingService geocodingService) 
         member.ImageUrl = photo.Url;
         member.User.ImageUrl = photo.Url;
 
-        return await uow.Complete();
+        var result = await uow.Complete();
+        if (result) await cacheService.RemoveByPrefixAsync("members:");
+
+        return result;
     }
 
     public async Task<bool> UpdateMemberAsync(string memberId, MemberUpdateDto memberUpdateDto)
@@ -43,11 +46,20 @@ public class MemberService(IUnitOfWork uow, IGeocodingService geocodingService) 
         }
 
         uow.MemberRepository.Update(member);
-        return await uow.Complete();
+        var result = await uow.Complete();
+        if (result) await cacheService.RemoveByPrefixAsync("members:");
+
+        return result;
     }
 
     public async Task<PaginatedResult<Member>> GetMembersWithFiltersAsync(MemberParams memberParams, Point? currentUserLocation)
     {
+        var cacheKey = $"members:{memberParams.PageNumber}-{memberParams.PageSize}:{memberParams.Gender}:{memberParams.MinAge}-{memberParams.MaxAge}:{memberParams.OrderBy}:{memberParams.Distance}";
+        
+        var cachedResult = await cacheService.GetAsync<PaginatedResult<Member>>(cacheKey);
+
+        if (cachedResult != null) return cachedResult;
+
         var query = uow.MemberRepository.GetMembersAsQueryable();
 
         query = query.Where(x => x.Id != memberParams.CurrentMemberId);
@@ -74,7 +86,11 @@ public class MemberService(IUnitOfWork uow, IGeocodingService geocodingService) 
             _ => query.OrderByDescending(x => x.LastActive),
         };
 
-        return await PaginationHelper.CreateAsync(query, memberParams.PageNumber, memberParams.PageSize);
+        var result = await PaginationHelper.CreateAsync(query, memberParams.PageNumber, memberParams.PageSize);
+
+        await cacheService.SetAsync(cacheKey, result, TimeSpan.FromMinutes(2));
+
+        return result;
     }
 
     private static double ConvertDistanceToMeters(int distance, string unit)

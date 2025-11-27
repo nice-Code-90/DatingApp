@@ -124,7 +124,9 @@ builder.Services.AddScoped<IMemberService, MemberService>();
 builder.Services.AddScoped<IMessageService, MessageService>();
 builder.Services.AddScoped<IAdminService, AdminService>();
 builder.Services.AddScoped<ILikesService, LikesService>();
-builder.Services.AddScoped<IGeocodingService, GeocodingService>(); 
+builder.Services.AddScoped<IGeocodingService, GeocodingService>();
+builder.Services.AddMemoryCache();
+builder.Services.AddScoped<ICacheService, InMemoryCacheService>();
 
 builder.Services.AddScoped<LogUserActivity>();
 
