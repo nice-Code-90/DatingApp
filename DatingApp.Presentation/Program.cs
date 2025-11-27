@@ -158,6 +158,25 @@ app.Use(async (context, next) =>
     
     context.Response.Headers.Append("Permissions-Policy", "camera=(), microphone=()");
 
+    var csp = new StringBuilder()
+        .Append("default-src 'self'; ")
+        .Append("script-src 'self' 'unsafe-inline'; ")
+        .Append("style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; ")
+        .Append("img-src 'self' data: https://res.cloudinary.com https://randomuser.me; ")
+        .Append("font-src 'self'; ")
+        .Append("connect-src 'self' https://api.opencagedata.com");
+
+    if (app.Environment.IsDevelopment())
+    {
+        csp.Append(" ws://localhost:* wss://localhost:*;");
+    }
+    csp.Append("; ")
+        .Append("frame-src 'self'; ")
+        .Append("object-src 'none'; ")
+        .Append("base-uri 'self'; ")
+        .Append("form-action 'self';");
+    context.Response.Headers.Append("Content-Security-Policy", csp.ToString());
+
     await next();
 });
 
