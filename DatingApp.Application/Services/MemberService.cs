@@ -2,10 +2,9 @@ using DatingApp.Application.DTOs;
 using DatingApp.Application.Helpers;
 using DatingApp.Application.Interfaces;
 using DatingApp.Domain.Entities;
-using DatingApp.Infrastructure.Data;
 using NetTopologySuite.Geometries;
 
-namespace DatingApp.Infrastructure.Services;
+namespace DatingApp.Application.Services;
 
 public class MemberService(IUnitOfWork uow, IGeocodingService geocodingService, ICacheService cacheService) : IMemberService
 {
@@ -60,45 +59,11 @@ public class MemberService(IUnitOfWork uow, IGeocodingService geocodingService, 
 
         if (cachedResult != null) return cachedResult;
 
-        var query = uow.MemberRepository.GetMembersAsQueryable();
-
-        query = query.Where(x => x.Id != memberParams.CurrentMemberId);
-
-        if (memberParams.Gender != null)
-        {
-            query = query.Where(x => x.Gender == memberParams.Gender);
-        }
-
-        var minDob = DateOnly.FromDateTime(DateTime.Today.AddYears(-memberParams.MaxAge - 1));
-        var maxDob = DateOnly.FromDateTime(DateTime.Today.AddYears(-memberParams.MinAge));
-
-        query = query.Where(x => x.DateOfBirth >= minDob && x.DateOfBirth <= maxDob);
-
-        if (memberParams.Distance.HasValue && memberParams.Distance > 0 && currentUserLocation != null)
-        {
-            var distanceInMeters = ConvertDistanceToMeters(memberParams.Distance.Value, memberParams.Unit);
-            query = query.Where(m => m.Location != null && m.Location.IsWithinDistance(currentUserLocation, distanceInMeters));
-        }
-
-        query = memberParams.OrderBy switch
-        {
-            "created" => query.OrderByDescending(x => x.Created),
-            _ => query.OrderByDescending(x => x.LastActive),
-        };
-
-        var result = await PaginationHelper.CreateAsync(query, memberParams.PageNumber, memberParams.PageSize);
+        var result = await uow.MemberRepository.GetMembersWithFiltersAsync(memberParams, currentUserLocation);
 
         await cacheService.SetAsync(cacheKey, result, TimeSpan.FromMinutes(2));
 
         return result;
     }
 
-    private static double ConvertDistanceToMeters(int distance, string unit)
-    {
-        return unit.ToLower() switch
-        {
-            "miles" => distance * 1609.34,
-            _ => distance * 1000.0
-        };
-    }
 }

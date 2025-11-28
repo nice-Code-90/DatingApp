@@ -7,7 +7,7 @@ namespace DatingApp.Application.Interfaces;
 public interface ILikesRepository
 {
     Task<MemberLike?> GetMemberLike(string sourceMemberId, string targetMemberId);
-    IQueryable<MemberLike> GetLikesAsQueryable();
+    Task<PaginatedResult<Member>> GetMemberLikesAsync(LikesParams likesParams);
     Task<IReadOnlyList<string>> GetCurrentMemberLikeIds(string memberId);
     void DeleteLike(MemberLike like);
     void AddLike(MemberLike like);

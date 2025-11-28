@@ -2,7 +2,6 @@ using System.Text;
 using DatingApp.Infrastructure.Data;
 using DatingApp.Domain.Entities;
 using DatingApp.Application.Interfaces;
-using DatingApp.Application.Helpers;
 using DatingApp.Presentation.Middleware;
 using DatingApp.Infrastructure.Services;
 using DatingApp.Presentation.SignalR;
@@ -12,6 +11,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using DatingApp.Presentation.Helpers;
 using Microsoft.OpenApi.Models;
+using DatingApp.Application.Services;
+using DatingApp.Application.Helpers;
 
 
 
@@ -120,11 +121,13 @@ builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<IPhotoService, PhotoService>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<IAiHelperService, AiHelperService>();
+builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IMemberService, MemberService>();
 builder.Services.AddScoped<IMessageService, MessageService>();
 builder.Services.AddScoped<IAdminService, AdminService>();
 builder.Services.AddScoped<ILikesService, LikesService>();
 builder.Services.AddScoped<IGeocodingService, GeocodingService>();
+
 builder.Services.AddMemoryCache();
 builder.Services.AddScoped<ICacheService, InMemoryCacheService>();
 

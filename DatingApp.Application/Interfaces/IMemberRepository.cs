@@ -9,7 +9,7 @@ public interface IMemberRepository
 {
     void Update(Member member);
     Task<Member?> GetMemberByIdAsync(string id);
-    IQueryable<Member> GetMembersAsQueryable();
+    Task<PaginatedResult<Member>> GetMembersWithFiltersAsync(MemberParams memberParams, Point? currentUserLocation);
     Task<IReadOnlyList<Photo>> GetPhotosForMemberAsync(string memberId, bool isCurrentUser);
     Task<Member?> GetMemberForUpdate(string id);
 }

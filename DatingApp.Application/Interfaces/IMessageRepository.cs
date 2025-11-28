@@ -12,8 +12,7 @@ public interface IMessageRepository
 
     Task<Message?> GetMessage(string messageId);
 
-    IQueryable<Message> GetMessagesAsQueryable();
-
+    Task<PaginatedResult<MessageDto>> GetMessagesForMemberAsync(MessageParams messageParams);
     Task<IReadOnlyList<MessageDto>> GetMessageThread(string currentMemberId, string recipientId);
 
     void AddGroup(Group group);
