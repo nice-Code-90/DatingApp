@@ -5,7 +5,7 @@ using DatingApp.Domain.Entities;
 
 namespace DatingApp.Application.Services;
 
-public class LikesService(IUnitOfWork uow, ICacheService cacheService) : ILikesService
+public class LikesService(IUnitOfWork uow, ICacheService cacheService, ICurrentUserService currentUserService) : ILikesService
 {
     public async Task<PaginatedResult<MemberDto>> GetMemberLikesAsync(LikesParams likesParams)
     {
@@ -24,8 +24,20 @@ public class LikesService(IUnitOfWork uow, ICacheService cacheService) : ILikesS
         return paginatedResult;
     }
 
-    public async Task<bool> ToggleLikeAsync(string sourceMemberId, string targetMemberId)
+    public async Task<IReadOnlyList<string>> GetCurrentMemberLikeIds()
     {
+        var memberId = currentUserService.MemberId;
+        if (string.IsNullOrEmpty(memberId)) return new List<string>();
+        return await uow.LikesRepository.GetCurrentMemberLikeIds(memberId);
+    }
+
+    public async Task<bool> ToggleLikeAsync(string targetMemberId)
+    {
+        var sourceMemberId = currentUserService.MemberId;
+        if (string.IsNullOrEmpty(sourceMemberId)) return false;
+
+        if (sourceMemberId == targetMemberId) return false; 
+
         var existingLike = await uow.LikesRepository.GetMemberLike(sourceMemberId, targetMemberId);
 
         if (existingLike == null)

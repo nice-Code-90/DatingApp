@@ -80,7 +80,7 @@ export class AccountService {
           });
       },
       14 * 24 * 60 * 60 * 1000,
-    ); //14 days
+    ); 
   }
 
   setCurrentUser(user: User) {

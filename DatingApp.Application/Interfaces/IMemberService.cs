@@ -6,7 +6,11 @@ namespace DatingApp.Application.Interfaces;
 
 public interface IMemberService
 {
-    Task<PaginatedResult<MemberDto>> GetMembersWithFiltersAsync(MemberParams memberParams, Point? currentUserLocation);
-    Task<bool> UpdateMemberAsync(string memberId, MemberUpdateDto memberUpdateDto);
-    Task<bool> SetMainPhotoAsync(string memberId, int photoId);
+    Task<PaginatedResult<MemberDto>?> GetMembersWithFiltersAsync(MemberParams memberParams);
+    Task<MemberDto?> GetMemberAsync(string id);
+    Task<IReadOnlyList<PhotoDto>> GetMemberPhotosAsync(string memberId);
+    Task<PhotoDto?> AddPhotoAsync(Stream photoStream, string fileName);
+    Task<bool> UpdateMemberAsync(MemberUpdateDto memberUpdateDto);
+    Task<bool> SetMainPhotoAsync(int photoId);
+    Task<bool> DeletePhotoAsync(int photoId);
 }

@@ -51,7 +51,7 @@ public class LikesRepository(AppDbContext context) : ILikesRepository
                     .Where(like => like.TargetMemberId == likesParams.MemberId)
                     .Select(x => x.SourceMember);
                 break;
-            default: // "mutual"
+            default: 
                 var likeIds = await GetCurrentMemberLikeIds(likesParams.MemberId);
                 membersQuery = query
                     .Where(x => x.TargetMemberId == likesParams.MemberId && likeIds.Contains(x.SourceMemberId))

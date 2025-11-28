@@ -12,6 +12,7 @@ using DatingApp.Presentation.Helpers;
 using Microsoft.OpenApi.Models;
 using DatingApp.Application; 
 using DatingApp.Infrastructure; 
+using DatingApp.Application.Extensions;
 using DatingApp.Application.Helpers;
 
 
@@ -71,10 +72,8 @@ builder.Services.AddHttpClient();
 builder.Services.Configure<CloudinarySettings>(builder.Configuration.GetSection("CloudinarySettings"));
 builder.Services.Configure<OpenCageSettings>(builder.Configuration.GetSection("OpenCageSettings")); 
 builder.Services.Configure<GeminiSettings>(builder.Configuration.GetSection("GeminiSettings")); 
-
 builder.Services.AddSignalR();
 builder.Services.AddSingleton<PresenceTracker>();
-
 builder.Services.AddIdentityCore<AppUser>(opt =>
 {
     opt.Password.RequireNonAlphanumeric = false;
@@ -119,10 +118,9 @@ builder.Services.AddAuthorizationBuilder()
 
 builder.Services.AddApplicationServices();
 builder.Services.AddInfrastructureServices();
-
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 builder.Services.AddMemoryCache();
-// Az ICacheService regisztrációja átkerült az Infrastructure-be
-
 builder.Services.AddScoped<LogUserActivity>();
 
 
@@ -201,4 +199,16 @@ async Task SeedDatabaseAsync()
     using var scope = app.Services.CreateScope();
     var initializer = scope.ServiceProvider.GetRequiredService<IDbInitializer>();
     await initializer.InitializeAsync();
+}
+
+public class CurrentUserService : ICurrentUserService
+{
+    private readonly IHttpContextAccessor _httpContextAccessor;
+
+    public CurrentUserService(IHttpContextAccessor httpContextAccessor)
+    {
+        _httpContextAccessor = httpContextAccessor;
+    }
+
+    public string? MemberId => _httpContextAccessor.HttpContext?.User?.GetMemberId();
 }

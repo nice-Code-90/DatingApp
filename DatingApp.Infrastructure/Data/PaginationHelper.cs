@@ -14,16 +14,6 @@ public class PaginationHelper
             .Take(pageSize)
             .ToListAsync();
 
-        return new PaginatedResult<T>
-        {
-            Metadata = new PaginationMetadata
-            {
-                CurrentPage = pageNumber,
-                TotalPages = (int)Math.Ceiling(count / (double)pageSize),
-                TotalCount = count,
-                PageSize = pageSize
-            },
-            Items = items
-        };
+        return new PaginatedResult<T>(items, count, pageNumber, pageSize);
     }
 }

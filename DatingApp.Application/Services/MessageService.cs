@@ -6,16 +6,19 @@ using DatingApp.Domain.Entities;
 
 namespace DatingApp.Application.Services;
 
-public class MessageService(IUnitOfWork uow) : IMessageService
+public class MessageService(IUnitOfWork uow, ICurrentUserService currentUserService) : IMessageService
 {
-    public async Task<MessageDto?> CreateMessageAsync(string senderId, CreateMessageDto createMessageDto)
+    public async Task<MessageDto?> CreateMessageAsync(CreateMessageDto createMessageDto)
     {
+        var senderId = currentUserService.MemberId;
+        if (string.IsNullOrEmpty(senderId)) return null;
+
         var sender = await uow.MemberRepository.GetMemberByIdAsync(senderId);
         var recipient = await uow.MemberRepository.GetMemberByIdAsync(createMessageDto.RecipientId);
 
         if (recipient == null || sender == null || sender.Id == createMessageDto.RecipientId)
         {
-            return null; // Controller will handle BadRequest
+            return null; 
         }
 
         var message = new Message
@@ -32,13 +35,16 @@ public class MessageService(IUnitOfWork uow) : IMessageService
         return null;
     }
 
-    public async Task<bool> DeleteMessageAsync(string currentUserId, string messageId)
+    public async Task<bool> DeleteMessageAsync(string messageId)
     {
+        var currentUserId = currentUserService.MemberId;
+        if (string.IsNullOrEmpty(currentUserId)) return false;
+
         var message = await uow.MessageRepository.GetMessage(messageId);
         if (message == null) return false;
 
         if (message.SenderId != currentUserId && message.RecipientId != currentUserId)
-            return false; // User has no permission
+            return false; 
 
         if (message.SenderId == currentUserId) message.SenderDeleted = true;
         if (message.RecipientId == currentUserId) message.RecipientDeleted = true;
@@ -53,6 +59,21 @@ public class MessageService(IUnitOfWork uow) : IMessageService
 
     public async Task<PaginatedResult<MessageDto>> GetMessagesForMemberAsync(MessageParams messageParams)
     {
+        var memberId = currentUserService.MemberId;
+        if (string.IsNullOrEmpty(memberId))
+        {
+            return PaginatedResult<MessageDto>.Empty(messageParams.PageNumber, messageParams.PageSize);
+        }
+        messageParams.MemberId = memberId;
+
         return await uow.MessageRepository.GetMessagesForMemberAsync(messageParams);
+    }
+
+    public async Task<IReadOnlyList<MessageDto>> GetMessageThread(string recipientId)
+    {
+        var currentMemberId = currentUserService.MemberId;
+        if (string.IsNullOrEmpty(currentMemberId)) return new List<MessageDto>();
+
+        return await uow.MessageRepository.GetMessageThread(currentMemberId, recipientId);
     }
 }

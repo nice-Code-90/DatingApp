@@ -55,12 +55,12 @@ public class AccountController(UserManager<AppUser> userManager, ITokenService t
     {
         var user = await userManager.FindByEmailAsync(loginDto.Email);
 
-        if (user == null) return Unauthorized("Invalid email address"); // only provide info for dev purposes
+        if (user == null) return Unauthorized("Invalid email address"); 
 
         var result = await userManager.CheckPasswordAsync(user, loginDto.Password);
 
 
-        if (!result) return Unauthorized("Invalid password"); // only provide info for dev purposes
+        if (!result) return Unauthorized("Invalid password"); 
 
         return await CreateUserDtoWithCookie(user);
     }

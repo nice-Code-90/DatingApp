@@ -6,5 +6,6 @@ namespace DatingApp.Application.Interfaces;
 public interface ILikesService
 {
     Task<PaginatedResult<MemberDto>> GetMemberLikesAsync(LikesParams likesParams);
-    Task<bool> ToggleLikeAsync(string sourceMemberId, string targetMemberId);
+    Task<IReadOnlyList<string>> GetCurrentMemberLikeIds();
+    Task<bool> ToggleLikeAsync(string targetMemberId);
 }

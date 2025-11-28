@@ -70,13 +70,13 @@ public class PhotoService : IPhotoService
         var photo = member.Photos.SingleOrDefault(x => x.Id == photoId);
         if (photo == null || photo.Url == member.ImageUrl)
         {
-            return false; // Cannot delete main photo or non-existent photo
+            return false; 
         }
 
         if (photo.PublicId != null)
         {
             var result = await DeletePhotoAsync(photo.PublicId);
-            if (!result) return false; // Failed to delete from Cloudinary
+            if (!result) return false; 
         }
 
         member.Photos.Remove(photo);
