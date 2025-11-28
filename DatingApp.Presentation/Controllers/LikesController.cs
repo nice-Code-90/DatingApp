@@ -1,4 +1,5 @@
 using DatingApp.Domain.Entities;
+using DatingApp.Application.DTOs;
 using DatingApp.Application.Extensions;
 using DatingApp.Application.Helpers;
 using DatingApp.Application.Interfaces;
@@ -29,7 +30,7 @@ public class LikesController(IUnitOfWork uow, ILikesService likesService) : Base
     }
 
     [HttpGet]
-    public async Task<ActionResult<PaginatedResult<Member>>> GetMemberLikes(
+    public async Task<ActionResult<PaginatedResult<MemberDto>>> GetMemberLikes(
         [FromQuery] LikesParams likesParams)
     {
         likesParams.MemberId = User.GetMemberId();

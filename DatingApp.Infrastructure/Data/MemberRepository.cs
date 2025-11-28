@@ -1,5 +1,7 @@
 using System;
 using DatingApp.Domain.Entities;
+using DatingApp.Application.DTOs;
+using DatingApp.Application.Extensions;
 using DatingApp.Application.Helpers;
 using NetTopologySuite.Geometries;
 using DatingApp.Application.Interfaces;
@@ -14,6 +16,14 @@ public class MemberRepository(AppDbContext context) : IMemberRepository
         return await context.Members.FindAsync(id);
     }
 
+    public async Task<MemberDto?> GetMemberDtoByIdAsync(string id)
+    {
+        return await context.Members
+            .Where(m => m.Id == id)
+            .Select(MemberExtensions.ToDtoProjection())
+            .SingleOrDefaultAsync();
+    }
+
     public async Task<Member?> GetMemberForUpdate(string id)
     {
         return await context.Members
@@ -23,7 +33,7 @@ public class MemberRepository(AppDbContext context) : IMemberRepository
             .SingleOrDefaultAsync(x => x.Id == id);
     }
 
-    public async Task<PaginatedResult<Member>> GetMembersWithFiltersAsync(MemberParams memberParams, Point? currentUserLocation)
+    public async Task<PaginatedResult<MemberDto>> GetMembersWithFiltersAsync(MemberParams memberParams, Point? currentUserLocation)
     {
         var query = context.Members.AsQueryable();
 
@@ -51,7 +61,9 @@ public class MemberRepository(AppDbContext context) : IMemberRepository
             _ => query.OrderByDescending(x => x.LastActive),
         };
 
-        return await PaginationHelper.CreateAsync(query, memberParams.PageNumber, memberParams.PageSize);
+        var dtoQuery = query.Select(MemberExtensions.ToDtoProjection());
+
+        return await PaginationHelper.CreateAsync(dtoQuery, memberParams.PageNumber, memberParams.PageSize);
     }
 
     private static double ConvertDistanceToMeters(int distance, string unit)
@@ -63,7 +75,7 @@ public class MemberRepository(AppDbContext context) : IMemberRepository
         };
     }
 
-    public async Task<IReadOnlyList<Photo>> GetPhotosForMemberAsync(string memberId, bool isCurrentUser)
+    public async Task<IReadOnlyList<PhotoDto>> GetPhotosForMemberAsync(string memberId, bool isCurrentUser)
     {
         var query = context.Members
             .Where(x => x.Id == memberId)
@@ -71,7 +83,9 @@ public class MemberRepository(AppDbContext context) : IMemberRepository
 
         if (isCurrentUser) query = query.IgnoreQueryFilters();
 
-        return await query.ToListAsync();
+        return await query
+            .Select(PhotoExtensions.ToDtoProjection())
+            .ToListAsync();
 
     }
 

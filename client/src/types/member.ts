@@ -5,22 +5,21 @@ export type GeoLocation = {
 
 export type Member = {
   id: string;
-  dateOfBirth: string;
+  age: number;
   imageUrl?: string;
   displayName: string;
   created: string;
   lastActive: string;
   gender: string;
   description?: string;
-  city: string;
-  country: string;
-  location?: GeoLocation;
+  city: string | null;
+  country: string | null;
+  photos: Photo[];
 };
 export type Photo = {
   id: number;
   url: string;
-  publicId?: string;
-  memberId: string;
+  isMain: boolean;
   isApproved: boolean;
 };
 export type EditableMember = {

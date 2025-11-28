@@ -19,7 +19,7 @@ import { LikesService } from '../../../core/services/likes-service';
 
 @Component({
   selector: 'app-member-detailed',
-  imports: [RouterLink, RouterLinkActive, RouterOutlet, AgePipe],
+  imports: [RouterLink, RouterLinkActive, RouterOutlet],
   templateUrl: './member-detailed.html',
   styleUrl: './member-detailed.css',
 })

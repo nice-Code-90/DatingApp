@@ -51,11 +51,11 @@ public class MemberService(IUnitOfWork uow, IGeocodingService geocodingService, 
         return result;
     }
 
-    public async Task<PaginatedResult<Member>> GetMembersWithFiltersAsync(MemberParams memberParams, Point? currentUserLocation)
+    public async Task<PaginatedResult<MemberDto>> GetMembersWithFiltersAsync(MemberParams memberParams, Point? currentUserLocation)
     {
         var cacheKey = $"members:{memberParams.PageNumber}-{memberParams.PageSize}:{memberParams.Gender}:{memberParams.MinAge}-{memberParams.MaxAge}:{memberParams.OrderBy}:{memberParams.Distance}";
         
-        var cachedResult = await cacheService.GetAsync<PaginatedResult<Member>>(cacheKey);
+        var cachedResult = await cacheService.GetAsync<PaginatedResult<MemberDto>>(cacheKey);
 
         if (cachedResult != null) return cachedResult;
 

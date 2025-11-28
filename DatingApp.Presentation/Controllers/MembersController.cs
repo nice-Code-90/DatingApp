@@ -14,7 +14,7 @@ namespace DatingApp.Presentation.Controllers
     {
         [ProducesResponseType(typeof(PaginatedResult<MemberDto>), StatusCodes.Status200OK)]
         [HttpGet]
-        public async Task<ActionResult<IReadOnlyList<Member>>> GetMembers(
+        public async Task<ActionResult<PaginatedResult<MemberDto>>> GetMembers(
             [FromQuery] MemberParams memberParams)
         {
             if (memberParams.Distance > 0)
@@ -36,17 +36,17 @@ namespace DatingApp.Presentation.Controllers
         [HttpGet("{id}")]
         [ProducesResponseType(typeof(MemberDto), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<ActionResult<Member>> GetMember(string id)
+        public async Task<ActionResult<MemberDto>> GetMember(string id)
         {
-            var member = await uow.MemberRepository.GetMemberByIdAsync(id);
+            var member = await uow.MemberRepository.GetMemberDtoByIdAsync(id);
 
             if (member == null) return NotFound();
-            return member;
+            return Ok(member);
 
         }
 
         [HttpGet("{id}/photos")]
-        public async Task<ActionResult<IReadOnlyList<Photo>>> GetMemberPhotos(string id)
+        public async Task<ActionResult<IReadOnlyList<PhotoDto>>> GetMemberPhotos(string id)
         {
             var isCurrentUser = User.GetMemberId() == id;
             return Ok(await uow.MemberRepository.GetPhotosForMemberAsync(id, isCurrentUser));
@@ -64,7 +64,7 @@ namespace DatingApp.Presentation.Controllers
         }
 
         [HttpPost("add-photo")]
-        public async Task<ActionResult<Photo>> AddPhoto( IFormFile file)
+        public async Task<ActionResult<PhotoDto>> AddPhoto( IFormFile file)
         {
             var member = await uow.MemberRepository.GetMemberForUpdate(User.GetMemberId());
 
@@ -84,7 +84,14 @@ namespace DatingApp.Presentation.Controllers
 
             member.Photos.Add(photo);
 
-            if (await uow.Complete()) return photo;
+            if (await uow.Complete())
+            {
+                // A PhotoDto-t adjuk vissza, nem az entitást
+                var photoDto = new PhotoDto { Id = photo.Id, Url = photo.Url, IsApproved = photo.IsApproved, IsMain = false };
+                // A CreatedAtRoute lenne a legtisztább, de ehhez kellene egy GetPhoto action
+                return Ok(photoDto);
+            }
+
             return BadRequest("Problem adding photo");
         }
 

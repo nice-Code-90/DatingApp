@@ -1,3 +1,4 @@
+using DatingApp.Application.DTOs;
 using DatingApp.Application.Helpers;
 using DatingApp.Application.Interfaces;
 using DatingApp.Domain.Entities;
@@ -6,10 +7,10 @@ namespace DatingApp.Application.Services;
 
 public class LikesService(IUnitOfWork uow, ICacheService cacheService) : ILikesService
 {
-    public async Task<PaginatedResult<Member>> GetMemberLikesAsync(LikesParams likesParams)
+    public async Task<PaginatedResult<MemberDto>> GetMemberLikesAsync(LikesParams likesParams)
     {
         var cacheKey = $"likes:{likesParams.MemberId}:{likesParams.Predicate}";
-        var cachedResult = await cacheService.GetAsync<PaginatedResult<Member>>(cacheKey);
+        var cachedResult = await cacheService.GetAsync<PaginatedResult<MemberDto>>(cacheKey);
 
         if (cachedResult != null)
         {

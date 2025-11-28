@@ -1,6 +1,8 @@
 using System;
 using DatingApp.Domain.Entities;
 using DatingApp.Application.Helpers;
+using DatingApp.Application.DTOs;
+using DatingApp.Application.Extensions;
 using DatingApp.Application.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
@@ -31,32 +33,34 @@ public class LikesRepository(AppDbContext context) : ILikesRepository
         return await context.Likes.FindAsync(sourceMemberId, targetMemberId);
     }
 
-    public async Task<PaginatedResult<Member>> GetMemberLikesAsync(LikesParams likesParams)
+    public async Task<PaginatedResult<MemberDto>> GetMemberLikesAsync(LikesParams likesParams)
     {
         var query = context.Likes.AsQueryable();
-        IQueryable<Member> result;
+        IQueryable<Member> membersQuery;
 
         switch (likesParams.Predicate)
         {
             case "liked":
-                result = query
+                membersQuery = query
                     .Where(like => like.SourceMemberId == likesParams.MemberId)
                     .Select(like => like.TargetMember);
                 break;
 
             case "likedBy":
-                result = query
+                membersQuery = query
                     .Where(like => like.TargetMemberId == likesParams.MemberId)
                     .Select(x => x.SourceMember);
                 break;
             default: // "mutual"
                 var likeIds = await GetCurrentMemberLikeIds(likesParams.MemberId);
-                result = query
+                membersQuery = query
                     .Where(x => x.TargetMemberId == likesParams.MemberId && likeIds.Contains(x.SourceMemberId))
                     .Select(x => x.SourceMember);
                 break;
         }
 
-        return await PaginationHelper.CreateAsync(result, likesParams.PageNumber, likesParams.PageSize);
+        var dtoQuery = membersQuery.Select(MemberExtensions.ToDtoProjection());
+
+        return await PaginationHelper.CreateAsync(dtoQuery, likesParams.PageNumber, likesParams.PageSize);
     }
 }

@@ -3,7 +3,6 @@ using DatingApp.Infrastructure.Data;
 using DatingApp.Domain.Entities;
 using DatingApp.Application.Interfaces;
 using DatingApp.Presentation.Middleware;
-using DatingApp.Infrastructure.Services;
 using DatingApp.Presentation.SignalR;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
@@ -11,7 +10,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using DatingApp.Presentation.Helpers;
 using Microsoft.OpenApi.Models;
-using DatingApp.Application.Services;
+using DatingApp.Application; 
+using DatingApp.Infrastructure; 
 using DatingApp.Application.Helpers;
 
 
@@ -117,19 +117,11 @@ builder.Services.AddAuthorizationBuilder()
     .AddPolicy("RequireAdminRole", policy => policy.RequireRole("Admin"))
     .AddPolicy("ModeratePhotoRole", policy => policy.RequireRole("Admin", "Moderator"));
 
-builder.Services.AddScoped<ITokenService, TokenService>();
-builder.Services.AddScoped<IPhotoService, PhotoService>();
-builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
-builder.Services.AddScoped<IAiHelperService, AiHelperService>();
-builder.Services.AddScoped<IUserRepository, UserRepository>();
-builder.Services.AddScoped<IMemberService, MemberService>();
-builder.Services.AddScoped<IMessageService, MessageService>();
-builder.Services.AddScoped<IAdminService, AdminService>();
-builder.Services.AddScoped<ILikesService, LikesService>();
-builder.Services.AddScoped<IGeocodingService, GeocodingService>();
+builder.Services.AddApplicationServices();
+builder.Services.AddInfrastructureServices();
 
 builder.Services.AddMemoryCache();
-builder.Services.AddScoped<ICacheService, InMemoryCacheService>();
+// Az ICacheService regisztrációja átkerült az Infrastructure-be
 
 builder.Services.AddScoped<LogUserActivity>();
 
@@ -200,21 +192,13 @@ app.MapHub<PresenceHub>("hubs/presence");
 app.MapHub<MessageHub>("hubs/messages");
 app.MapFallbackToController("Index", "Fallback");
 
-using var scope = app.Services.CreateScope();
-var services = scope.ServiceProvider;
-try
-{
-    var context = services.GetRequiredService<AppDbContext>();
-    var userManager = services.GetRequiredService<UserManager<AppUser>>();
-    var geocodingService = services.GetRequiredService<IGeocodingService>();
-    await context.Database.MigrateAsync();
-    await context.Connections.ExecuteDeleteAsync();
-    await Seed.SeedUsers(userManager, geocodingService);
-}
-catch (Exception ex)
-{
-    var logger = services.GetRequiredService<ILogger<Program>>();
-    logger.LogError(ex, "An error occurred during migration");
-}
+await SeedDatabaseAsync();
 
 app.Run();
+
+async Task SeedDatabaseAsync()
+{
+    using var scope = app.Services.CreateScope();
+    var initializer = scope.ServiceProvider.GetRequiredService<IDbInitializer>();
+    await initializer.InitializeAsync();
+}
