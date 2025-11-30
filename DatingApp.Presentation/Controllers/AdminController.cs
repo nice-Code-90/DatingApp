@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace DatingApp.Presentation.Controllers;
 
-public class AdminController(UserManager<AppUser> userManager, IUnitOfWork uow, IPhotoService photoService, IAdminService adminService, ICacheService cacheService) : BaseApiController
+public class AdminController(UserManager<AppUser> userManager, IUnitOfWork uow, IAdminService adminService) : BaseApiController
 {
     [Authorize(Policy = "RequireAdminRole")]
     [HttpGet("users-with-roles")]
@@ -29,6 +29,8 @@ public class AdminController(UserManager<AppUser> userManager, IUnitOfWork uow, 
         if (!succeeded) return BadRequest(errors);
         
         var user = await userManager.FindByIdAsync(userId);
+        if (user is null) return NotFound("User not found");
+
         return Ok(await userManager.GetRolesAsync(user));
 
     }

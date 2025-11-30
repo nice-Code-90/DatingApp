@@ -1,4 +1,3 @@
-using System;
 using DatingApp.Domain.Entities;
 using DatingApp.Application.DTOs;
 using DatingApp.Application.Extensions;
@@ -6,8 +5,10 @@ using DatingApp.Application.Helpers;
 using NetTopologySuite.Geometries;
 using DatingApp.Application.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using DatingApp.Infrastructure.Data;
+using DatingApp.Infrastructure.Helpers;
 
-namespace DatingApp.Infrastructure.Data;
+namespace DatingApp.Infrastructure.Repository;
 
 public class MemberRepository(AppDbContext context) : IMemberRepository
 {

@@ -1,10 +1,11 @@
 using DatingApp.Application.DTOs;
 using DatingApp.Application.Interfaces;
 using DatingApp.Domain.Entities;
+using DatingApp.Infrastructure.Data;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
-namespace DatingApp.Infrastructure.Data;
+namespace DatingApp.Infrastructure.Repository;
 
 public class UserRepository(UserManager<AppUser> userManager, AppDbContext context) : IUserRepository
 {
@@ -15,7 +16,7 @@ public class UserRepository(UserManager<AppUser> userManager, AppDbContext conte
             .Select(u => new UserWithRolesDto
             {
                 Id = u.Id,
-                Email = u.Email,
+                Email = u.Email ?? string.Empty,
                 Roles = (from userRole in context.UserRoles
                          where userRole.UserId == u.Id
                          join role in context.Roles

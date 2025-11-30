@@ -1,5 +1,6 @@
 using DatingApp.Application.Interfaces;
 using DatingApp.Infrastructure.Data;
+using DatingApp.Infrastructure.Repository;
 using DatingApp.Infrastructure.Services;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -17,8 +18,6 @@ public static class DependencyInjection
         services.AddScoped<IGeocodingService, GeocodingService>();
         services.AddScoped<ICacheService, InMemoryCacheService>();
         services.AddScoped<IDbInitializer, DbInitializer>();
-
-        
 
         return services;
     }

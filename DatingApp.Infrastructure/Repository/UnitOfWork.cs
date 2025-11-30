@@ -1,8 +1,8 @@
-using System;
 using DatingApp.Application.Interfaces;
+using DatingApp.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 
-namespace DatingApp.Infrastructure.Data;
+namespace DatingApp.Infrastructure.Repository;
 
 public class UnitOfWork(AppDbContext context) : IUnitOfWork
 {

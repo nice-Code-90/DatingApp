@@ -1,7 +1,7 @@
 using DatingApp.Application.Helpers;
 using Microsoft.EntityFrameworkCore;
 
-namespace DatingApp.Infrastructure.Data;
+namespace DatingApp.Infrastructure.Helpers;
 
 public class PaginationHelper
 {

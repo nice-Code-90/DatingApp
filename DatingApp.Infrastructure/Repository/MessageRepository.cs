@@ -1,12 +1,13 @@
-using System;
 using DatingApp.Application.DTOs;
 using DatingApp.Domain.Entities;
 using DatingApp.Application.Helpers;
 using DatingApp.Application.Extensions;
 using DatingApp.Application.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using DatingApp.Infrastructure.Data;
+using DatingApp.Infrastructure.Helpers;
 
-namespace DatingApp.Infrastructure.Data;
+namespace DatingApp.Infrastructure.Repository;
 
 public class MessageRepository(AppDbContext context) : IMessageRepository
 {
