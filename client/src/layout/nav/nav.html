@@ -1,65 +1,6 @@
 <header class="fixed top-0 z-50 w-full bg-gradient-to-r from-primary to-black shadow-md">
   <div class="navbar container mx-auto px-2 sm:px-4">
     <div class="navbar-start">
-      <div class="dropdown">
-        <div tabindex="0" role="button" class="btn btn-ghost lg:hidden text-white mr-2">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="h-6 w-6"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M4 6h16M4 12h8m-8 6h16"
-            />
-          </svg>
-        </div>
-
-        <ul
-          tabindex="0"
-          class="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-100 rounded-box w-72 text-base-content"
-        >
-          @if (accountService.currentUser()) {
-            <li><a routerLink="/members" routerLinkActive="active">Matches</a></li>
-            <li><a routerLink="/lists" routerLinkActive="active">Lists</a></li>
-            <li><a routerLink="/messages" routerLinkActive="active">Messages</a></li>
-            <li *appHasRole="['Admin', 'Moderator']"><a routerLink="/admin">Admin</a></li>
-          }
-
-          @if (!accountService.currentUser()) {
-            <li class="menu-title mt-2">Login</li>
-            <li>
-              <form #loginFormMobile="ngForm" (ngSubmit)="login()" class="flex flex-col gap-2 p-1">
-                <input
-                  [(ngModel)]="creds.email"
-                  name="email"
-                  type="text"
-                  placeholder="Email"
-                  class="input input-bordered w-full"
-                />
-                <input
-                  [(ngModel)]="creds.password"
-                  name="password"
-                  type="password"
-                  placeholder="Password"
-                  class="input input-bordered w-full"
-                />
-                <button type="submit" class="btn btn-primary btn-sm w-full mt-2">
-                  @if (loading()) {
-                    <span class="loading loading-spinner loading-xs"></span>
-                  }
-                  Login
-                </button>
-              </form>
-            </li>
-          }
-        </ul>
-      </div>
-
       <a routerLink="/" class="flex items-center gap-2 text-white hover:text-accent transition">
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -101,15 +42,15 @@
       </ul>
     </div>
 
-    <div class="navbar-end gap-2">
+    <div class="navbar-end gap-2 flex items-center">
       @if (busyService.busyRequestCount() > 0) {
-        <div class="mr-2">
-          <span class="loading loading-spinner text-accent"></span>
+        <div class="mr-1">
+          <span class="loading loading-spinner text-accent loading-sm"></span>
         </div>
       }
 
       <div class="dropdown dropdown-end">
-        <button tabindex="0" class="btn btn-ghost btn-sm sm:btn-md text-white">
+        <button tabindex="0" class="btn btn-ghost btn-sm sm:btn-md text-white px-1 sm:px-2">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
@@ -138,45 +79,112 @@
         </ul>
       </div>
 
-      @if (accountService.currentUser(); as user) {
-        <div class="dropdown dropdown-end">
-          <div tabindex="0" role="button" class="btn btn-ghost btn-circle avatar">
-            <div class="w-8 sm:w-10 rounded-full border border-white">
-              <img [src]="user?.imageUrl || '/user.png'" alt="User" />
+      <div class="hidden lg:flex items-center gap-2">
+        @if (accountService.currentUser(); as user) {
+          <div class="dropdown dropdown-end">
+            <div tabindex="0" role="button" class="btn btn-ghost btn-circle avatar">
+              <div class="w-10 rounded-full border border-white">
+                <img [src]="user?.imageUrl || '/user.png'" alt="User" />
+              </div>
             </div>
+            <ul
+              tabindex="0"
+              class="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-100 rounded-box w-52 text-base-content"
+            >
+              <li>
+                <a class="justify-between" routerLink="members/{{ user.id }}">Edit Profile</a>
+              </li>
+              <li><a (click)="logout()">Logout</a></li>
+            </ul>
           </div>
-          <ul
-            tabindex="0"
-            class="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-100 rounded-box w-52 text-base-content"
+        } @else {
+          <form #loginForm="ngForm" (ngSubmit)="login()" class="flex items-center gap-2">
+            <input
+              [(ngModel)]="creds.email"
+              name="email"
+              type="text"
+              class="input input-sm input-bordered w-32 xl:w-40"
+              placeholder="Email"
+            />
+            <input
+              [(ngModel)]="creds.password"
+              name="password"
+              type="password"
+              class="input input-sm input-bordered w-32 xl:w-40"
+              placeholder="Password"
+            />
+            <button type="submit" class="btn btn-sm btn-primary">Login</button>
+          </form>
+        }
+      </div>
+
+      <div class="dropdown dropdown-end lg:hidden">
+        <div tabindex="0" role="button" class="btn btn-ghost text-white">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="h-6 w-6"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
           >
-            <li><a class="justify-between" routerLink="members/{{ user.id }}">Edit Profile</a></li>
-            <li><a (click)="logout()">Logout</a></li>
-          </ul>
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M4 6h16M4 12h8m-8 6h16"
+            />
+          </svg>
         </div>
-      } @else {
-        <form #loginForm="ngForm" (ngSubmit)="login()" class="hidden lg:flex items-center gap-2">
-          <input
-            [(ngModel)]="creds.email"
-            name="email"
-            type="text"
-            class="input input-sm input-bordered w-40"
-            placeholder="Email"
-          />
-          <input
-            [(ngModel)]="creds.password"
-            name="password"
-            type="password"
-            class="input input-sm input-bordered w-40"
-            placeholder="Password"
-          />
-          <button type="submit" class="btn btn-sm btn-primary">
-            @if (loading()) {
-              <span class="loading loading-spinner loading-xs mr-1"></span>
-            }
-            Login
-          </button>
-        </form>
-      }
+
+        <ul
+          tabindex="0"
+          class="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-100 rounded-box w-72 text-base-content"
+        >
+          @if (accountService.currentUser(); as user) {
+            <li
+              class="menu-title flex flex-row items-center gap-2 pb-2 mb-2 border-b border-base-300"
+            >
+              <div class="avatar">
+                <div class="w-8 rounded-full">
+                  <img [src]="user?.imageUrl || '/user.png'" />
+                </div>
+              </div>
+              <span>{{ user.displayName }}</span>
+            </li>
+            <li><a routerLink="/members" routerLinkActive="active">Matches</a></li>
+            <li><a routerLink="/lists" routerLinkActive="active">Lists</a></li>
+            <li><a routerLink="/messages" routerLinkActive="active">Messages</a></li>
+            <li *appHasRole="['Admin', 'Moderator']"><a routerLink="/admin">Admin</a></li>
+            <li class="mt-2 border-t border-base-300 pt-2">
+              <a routerLink="members/{{ user.id }}">Edit Profile</a>
+            </li>
+            <li><a (click)="logout()" class="text-error">Logout</a></li>
+          }
+
+          @if (!accountService.currentUser()) {
+            <li class="menu-title">Login</li>
+            <li>
+              <form #loginFormMobile="ngForm" (ngSubmit)="login()" class="flex flex-col gap-2 p-1">
+                <input
+                  [(ngModel)]="creds.email"
+                  name="email"
+                  type="text"
+                  placeholder="Email"
+                  class="input input-bordered w-full"
+                />
+                <input
+                  [(ngModel)]="creds.password"
+                  name="password"
+                  type="password"
+                  placeholder="Password"
+                  class="input input-bordered w-full"
+                />
+                <button type="submit" class="btn btn-primary btn-sm w-full mt-2">Login</button>
+              </form>
+            </li>
+          }
+        </ul>
+      </div>
     </div>
   </div>
 </header>
