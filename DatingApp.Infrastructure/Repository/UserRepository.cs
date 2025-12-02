@@ -47,4 +47,18 @@ public class UserRepository(UserManager<AppUser> userManager, AppDbContext conte
     {
         return await userManager.FindByIdAsync(userId);
     }
+
+    public async Task<IEnumerable<Member>> GetMembersForAiSyncAsync()
+    {
+        return await context.Members
+            .AsNoTracking()
+            .ToListAsync();
+    }
+
+    public async Task<Member?> GetMemberByIdAsync(string id)
+    {
+        return await context.Members
+            .Include(m => m.Photos)
+            .FirstOrDefaultAsync(m => m.Id == id);
+    }
 }
