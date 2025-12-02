@@ -2,13 +2,16 @@ using DatingApp.Application.Interfaces;
 using DatingApp.Infrastructure.Data;
 using DatingApp.Infrastructure.Repository;
 using DatingApp.Infrastructure.Services;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.SemanticKernel.Connectors.Google;
+using Microsoft.SemanticKernel.Embeddings;
 
 namespace DatingApp.Infrastructure;
 
 public static class DependencyInjection
 {
-    public static IServiceCollection AddInfrastructureServices(this IServiceCollection services)
+    public static IServiceCollection AddInfrastructureServices(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddScoped<ITokenService, TokenService>();
         services.AddScoped<IPhotoService, PhotoService>();
@@ -18,7 +21,20 @@ public static class DependencyInjection
         services.AddScoped<IGeocodingService, GeocodingService>();
         services.AddScoped<ICacheService, InMemoryCacheService>();
         services.AddScoped<IDbInitializer, DbInitializer>();
+        services.AddKernel();
 
+        services.AddSingleton<ITextEmbeddingGenerationService>(sp =>
+        {
+            var apiKey = configuration["GeminiSettings:ApiKey"];
+            if (string.IsNullOrEmpty(apiKey)) throw new Exception("Gemini API Key is missing");
+
+            return new GoogleAITextEmbeddingGenerationService(
+                modelId: "text-embedding-004",
+                apiKey: apiKey,
+                apiVersion: GoogleAIVersion.V1_Beta
+            );
+        });
+        services.AddScoped<IAiMatchmakingService, AiMatchmakingService>();
         return services;
     }
 }
