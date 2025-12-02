@@ -9,9 +9,7 @@ namespace DatingApp.Infrastructure.Data;
 public class DbInitializer(
     ILogger<DbInitializer> logger,
     AppDbContext context,
-    UserManager<AppUser> userManager,
-    IGeocodingService geocodingService,
-    IAiMatchmakingService aiMatchmakingService) : IDbInitializer
+    UserManager<AppUser> userManager) : IDbInitializer
 {
     public async Task InitializeAsync()
     {
@@ -23,7 +21,6 @@ public class DbInitializer(
         catch (Exception ex)
         {
             logger.LogError(ex, "An error occurred during database migration.");
-            // We don't re-throw here to allow the app to start even if DB migration fails.
         }
 
         try

@@ -7,7 +7,8 @@ public class AdminService(
     IUserRepository userRepository,
     IUnitOfWork uow,
     IPhotoService photoService,
-    ICacheService cacheService) : IAdminService
+    ICacheService cacheService,
+    IDataSeedingService dataSeedingService) : IAdminService
 {
     private const string UsersWithRolesCacheKey = "users-with-roles";
 
@@ -33,6 +34,16 @@ public class AdminService(
         }
 
         return (succeeded, errors);
+    }
+
+    public async Task<IEnumerable<PhotoForApprovalDto>> GetPhotosForModerationAsync()
+    {
+        return await uow.PhotoRepository.GetUnapprovedPhotos();
+    }
+
+    public void StartSeedUsersProcess()
+    {
+        dataSeedingService.StartSeedUsersProcess();
     }
 
     public async Task<bool> ApprovePhotoAsync(int photoId)

@@ -25,6 +25,7 @@ public static class DependencyInjection
         services.AddScoped<IGeocodingService, GeocodingService>();
         services.AddScoped<ICacheService, InMemoryCacheService>();
         services.AddScoped<IDbInitializer, DbInitializer>();
+        services.AddScoped<IDataSeedingService, DataSeedingService>();
 
         services.AddKernel();
 

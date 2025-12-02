@@ -1,21 +1,12 @@
 using DatingApp.Application.DTOs;
 using DatingApp.Application.Interfaces;
-using DatingApp.Domain.Entities;
-using DatingApp.Infrastructure.Data;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DatingApp.Presentation.Controllers;
 
 public class AdminController(
-    UserManager<AppUser> userManager,
-    IUnitOfWork uow,
-    IAdminService adminService,
-    IGeocodingService geocodingService,
-    IAiMatchmakingService aiMatchmakingService,
-    ILoggerFactory loggerFactory,
-    IServiceProvider serviceProvider
+    IAdminService adminService
     ) : BaseApiController
 {
     [Authorize(Policy = "RequireAdminRole")]
@@ -37,18 +28,14 @@ public class AdminController(
 
         if (!succeeded) return BadRequest(errors);
 
-        var user = await userManager.FindByIdAsync(userId);
-        if (user is null) return NotFound("User not found");
-
-        return Ok(await userManager.GetRolesAsync(user));
-
+        return Ok();
     }
 
     [Authorize(Policy = "ModeratePhotoRole")]
     [HttpGet("photos-to-moderate")]
     public async Task<ActionResult<IEnumerable<PhotoForApprovalDto>>> GetPhotosForModeration()
     {
-        return Ok(await uow.PhotoRepository.GetUnapprovedPhotos());
+        return Ok(await adminService.GetPhotosForModerationAsync());
     }
 
 
@@ -79,18 +66,7 @@ public class AdminController(
     [HttpPost("seed-users")]
     public ActionResult SeedUsers()
     {
-
-        _ = Task.Run(async () =>
-        {
-            using var scope = serviceProvider.CreateScope();
-            var scopedUserManager = scope.ServiceProvider.GetRequiredService<UserManager<AppUser>>();
-            var scopedGeocodingService = scope.ServiceProvider.GetRequiredService<IGeocodingService>();
-            var scopedAiMatchmakingService = scope.ServiceProvider.GetRequiredService<IAiMatchmakingService>();
-            var seedLogger = scope.ServiceProvider.GetRequiredService<ILoggerFactory>().CreateLogger("DatingApp.Infrastructure.Data.Seed");
-
-            await Seed.SeedUsers(seedLogger, scopedUserManager, scopedGeocodingService, scopedAiMatchmakingService);
-        });
-
+        adminService.StartSeedUsersProcess();
         return Accepted("User seeding process has been started in the background.");
     }
 }
