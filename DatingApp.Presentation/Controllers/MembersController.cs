@@ -15,11 +15,7 @@ namespace DatingApp.Presentation.Controllers
         public async Task<ActionResult<PaginatedResult<MemberDto>>> GetMembers(
             [FromQuery] MemberParams memberParams)
         {
-            var members = await memberService.GetMembersWithFiltersAsync(memberParams);
-
-            if (members == null) return BadRequest("Your location is not available to filter by distance.");
-
-            return Ok(members);
+            return HandleResult(await memberService.GetMembersWithFiltersAsync(memberParams));
         }
 
         [HttpGet("{id}")]
@@ -27,58 +23,37 @@ namespace DatingApp.Presentation.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<MemberDto>> GetMember(string id)
         {
-            var member = await memberService.GetMemberAsync(id);
-
-            if (member == null) return NotFound();
-            return Ok(member);
-
+            return HandleResult(await memberService.GetMemberAsync(id));
         }
 
         [HttpGet("{id}/photos")]
         public async Task<ActionResult<IReadOnlyList<PhotoDto>>> GetMemberPhotos(string id)
         {
-            return Ok(await memberService.GetMemberPhotosAsync(id));
+            return HandleResult(await memberService.GetMemberPhotosAsync(id));
         }
 
         [HttpPut]
         public async Task<ActionResult> UpdateMember(MemberUpdateDto memberUpdateDto)
         {
-            var result = await memberService.UpdateMemberAsync(memberUpdateDto);
-            
-            if (result) return NoContent();
-
-            return BadRequest("Failed to update member");
-
+            return HandleResult(await memberService.UpdateMemberAsync(memberUpdateDto));
         }
 
         [HttpPost("add-photo")]
-        public async Task<ActionResult<PhotoDto>> AddPhoto( IFormFile file)
+        public async Task<ActionResult<PhotoDto>> AddPhoto(IFormFile file)
         {
-            var result = await memberService.AddPhotoAsync(file.OpenReadStream(), file.FileName);
-
-            if (result != null) return Ok(result);
-
-            return BadRequest("Problem adding photo");
+            return HandleResult(await memberService.AddPhotoAsync(file.OpenReadStream(), file.FileName));
         }
 
         [HttpPut("set-main-photo/{photoId}")]
         public async Task<ActionResult> SetMainPhoto(int photoId)
         {
-            var result = await memberService.SetMainPhotoAsync(photoId);
-            
-            if (result) return NoContent();
-
-            return BadRequest("Problem setting main photo");
+            return HandleResult(await memberService.SetMainPhotoAsync(photoId));
         }
 
         [HttpDelete("delete-photo/{photoId}")]
         public async Task<ActionResult> DeletePhoto(int photoId)
         {
-            var result = await memberService.DeletePhotoAsync(photoId);
-            
-            if (result) return Ok();
-
-            return BadRequest("Problem deleting the photo");
+            return HandleResult(await memberService.DeletePhotoAsync(photoId));
         }
     }
 }

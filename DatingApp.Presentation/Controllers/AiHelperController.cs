@@ -21,27 +21,22 @@ namespace DatingApp.Presentation.Controllers
         }
 
         [HttpGet("suggestion/{recipientId}")]
-        public async Task<ActionResult<string>> GetSuggestion(string recipientId)
+        public async Task<ActionResult<SuggestionDto>> GetSuggestion(string recipientId)
         {
             var currentUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
             if (string.IsNullOrEmpty(currentUserId)) return Unauthorized();
 
-            var suggestion = await _aiHelperService.GetChatSuggestion(currentUserId, recipientId);
-
-            return Ok(new { suggestion = suggestion });
+            return HandleResult(await _aiHelperService.GetChatSuggestion(currentUserId, recipientId));
         }
 
         [HttpGet("search")]
         public async Task<ActionResult<IEnumerable<MemberDto>>> SmartSearch([FromQuery] string query)
         {
-            if (string.IsNullOrEmpty(query)) return BadRequest("Search query cannot be empty");
 
-            var members = await _aiMatchmakingService.FindMatchingMembersAsync(query);
+            var result = await _aiMatchmakingService.FindMatchingMembersAsync(query);
 
-            if (!members.Any()) return NotFound("No matches found based on your description.");
-
-            return Ok(members);
+            return HandleResult(result);
         }
     }
 }

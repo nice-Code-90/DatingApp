@@ -1,5 +1,8 @@
 using DatingApp.Application.DTOs;
 using DatingApp.Application.Interfaces;
+using DatingApp.Application.Helpers;
+using DatingApp.Domain.Entities;
+using Microsoft.AspNetCore.Identity;
 
 namespace DatingApp.Application.Services;
 
@@ -8,7 +11,8 @@ public class AdminService(
     IUnitOfWork uow,
     IPhotoService photoService,
     ICacheService cacheService,
-    IDataSeedingService dataSeedingService) : IAdminService
+    IDataSeedingService dataSeedingService,
+    UserManager<AppUser> userManager) : IAdminService
 {
     private const string UsersWithRolesCacheKey = "users-with-roles";
 
@@ -24,16 +28,21 @@ public class AdminService(
         return users;
     }
 
-    public async Task<(bool Succeeded, string[]? Errors)> EditRolesAsync(string userId, string[] selectedRoles)
+    public async Task<Result<IEnumerable<string>>> EditRolesAsync(string userId, string[] selectedRoles)
     {
         var (succeeded, errors) = await userRepository.EditRolesAsync(userId, selectedRoles);
 
         if (succeeded)
         {
             await cacheService.RemoveAsync(UsersWithRolesCacheKey);
+            var user = await userManager.FindByIdAsync(userId);
+            if (user == null) return Result<IEnumerable<string>>.Failure("User not found");
+
+            var roles = await userManager.GetRolesAsync(user);
+            return Result<IEnumerable<string>>.Success(roles);
         }
 
-        return (succeeded, errors);
+        return Result<IEnumerable<string>>.Failure(string.Join(", ", errors ?? new[] { "Failed to edit roles" }));
     }
 
     public async Task<IEnumerable<PhotoForApprovalDto>> GetPhotosForModerationAsync()
@@ -46,13 +55,13 @@ public class AdminService(
         dataSeedingService.StartSeedUsersProcess();
     }
 
-    public async Task<bool> ApprovePhotoAsync(int photoId)
+    public async Task<Result<object>> ApprovePhotoAsync(int photoId)
     {
         var photo = await uow.PhotoRepository.GetPhotoById(photoId);
-        if (photo == null) return false;
+        if (photo == null) return Result.Failure("Photo not found");
 
         var member = await uow.MemberRepository.GetMemberForUpdate(photo.MemberId);
-        if (member == null) return false;
+        if (member == null) return Result.Failure("Member not found");
 
         photo.IsApproved = true;
 
@@ -65,23 +74,23 @@ public class AdminService(
         if (await uow.Complete())
         {
             await cacheService.RemoveByPrefixAsync("members:");
-            return true;
+            return Result<object>.Success(new { });
         }
 
-        return false;
+        return Result.Failure("Failed to approve photo");
     }
 
-    public async Task<bool> RejectPhotoAsync(int photoId)
+    public async Task<Result<object>> RejectPhotoAsync(int photoId)
     {
         var photo = await uow.PhotoRepository.GetPhotoById(photoId);
-        if (photo == null) return false;
+        if (photo == null) return Result.Failure("Photo not found");
 
         if (photo.PublicId != null)
         {
-            if (!await photoService.DeletePhotoAsync(photo.PublicId)) return false;
+            if (!await photoService.DeletePhotoAsync(photo.PublicId)) return Result.Failure("Failed to delete photo from Cloudinary");
         }
 
         uow.PhotoRepository.RemovePhoto(photo);
-        return await uow.Complete();
+        return await uow.Complete() ? Result<object>.Success(new { }) : Result.Failure("Failed to reject photo");
     }
 }

@@ -13,34 +13,25 @@ public class MessagesController(IMessageService messageService) : BaseApiControl
     [HttpPost]
     public async Task<ActionResult<MessageDto>> CreateMessage(CreateMessageDto createMessageDto)
     {
-        var messageDto = await messageService.CreateMessageAsync(createMessageDto);
-
-        if (messageDto != null) return Ok(messageDto);
-
-        return BadRequest("Failed to send message");
+        return HandleResult(await messageService.CreateMessageAsync(createMessageDto));
     }
 
     [HttpGet]
     public async Task<ActionResult<PaginatedResult<MessageDto>>> GetMessagesForUser(
         [FromQuery] MessageParams messageParams)
     {
-        return Ok(await messageService.GetMessagesForMemberAsync(messageParams));
+        return HandleResult(await messageService.GetMessagesForMemberAsync(messageParams));
     }
 
     [HttpGet("thread/{recipientId}")]
     public async Task<ActionResult<IReadOnlyList<MessageDto>>> GetMessageThread(string recipientId)
     {
-        return Ok(await messageService.GetMessageThread(recipientId));
+        return HandleResult(await messageService.GetMessageThread(recipientId));
     }
 
     [HttpDelete("{id}")]
     public async Task<ActionResult> DeleteMessage(string id)
     {
-        var result = await messageService.DeleteMessageAsync(id);
-
-        if (result) return Ok();
-
-        return BadRequest("Problem deleting the message");
-
+        return HandleResult(await messageService.DeleteMessageAsync(id));
     }
 }

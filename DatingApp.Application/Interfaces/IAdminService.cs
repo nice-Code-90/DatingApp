@@ -1,13 +1,14 @@
 using DatingApp.Application.DTOs;
+using DatingApp.Application.Helpers;
 
 namespace DatingApp.Application.Interfaces;
 
 public interface IAdminService
 {
     Task<IEnumerable<UserWithRolesDto>> GetUsersWithRolesAsync();
-    Task<(bool Succeeded, string[]? Errors)> EditRolesAsync(string userId, string[] selectedRoles);
-    Task<bool> ApprovePhotoAsync(int photoId);
-    Task<bool> RejectPhotoAsync(int photoId);
+    Task<Result<IEnumerable<string>>> EditRolesAsync(string userId, string[] selectedRoles);
+    Task<Result<object>> ApprovePhotoAsync(int photoId);
+    Task<Result<object>> RejectPhotoAsync(int photoId);
     Task<IEnumerable<PhotoForApprovalDto>> GetPhotosForModerationAsync();
     void StartSeedUsersProcess();
 }

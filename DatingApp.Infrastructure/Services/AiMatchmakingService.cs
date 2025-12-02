@@ -7,6 +7,7 @@ using Microsoft.Extensions.AI;
 using Qdrant.Client;
 using Microsoft.Extensions.Logging;
 using Qdrant.Client.Grpc;
+using DatingApp.Application.Helpers;
 
 namespace DatingApp.Infrastructure.Services
 {
@@ -96,17 +97,19 @@ namespace DatingApp.Infrastructure.Services
             return ids;
         }
 
-        public async Task<IEnumerable<MemberDto>> FindMatchingMembersAsync(string searchQuery)
+        public async Task<Result<IEnumerable<MemberDto>>> FindMatchingMembersAsync(string searchQuery)
         {
+            if (string.IsNullOrEmpty(searchQuery)) return Result<IEnumerable<MemberDto>>.Failure("Search query cannot be empty");
+
             var matchIds = await FindMatchesIdsAsync(searchQuery);
 
             if (!matchIds.Any())
             {
-                return Enumerable.Empty<MemberDto>();
+                return Result<IEnumerable<MemberDto>>.Failure("No matches found based on your description.");
             }
             var members = await _unitOfWork.MemberRepository.GetMembersByIdsAsync(matchIds);
 
-            return members.Select(member => member.ToDto()).Where(dto => dto != null)!;
+            return Result<IEnumerable<MemberDto>>.Success(members.Select(member => member.ToDto()).Where(dto => dto != null)!);
         }
     }
 }

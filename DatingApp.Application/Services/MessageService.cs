@@ -8,17 +8,17 @@ namespace DatingApp.Application.Services;
 
 public class MessageService(IUnitOfWork uow, ICurrentUserService currentUserService) : IMessageService
 {
-    public async Task<MessageDto?> CreateMessageAsync(CreateMessageDto createMessageDto)
+    public async Task<Result<MessageDto>> CreateMessageAsync(CreateMessageDto createMessageDto)
     {
         var senderId = currentUserService.MemberId;
-        if (string.IsNullOrEmpty(senderId)) return null;
+        if (string.IsNullOrEmpty(senderId)) return Result<MessageDto>.Failure("Sender not found");
 
         var sender = await uow.MemberRepository.GetMemberByIdAsync(senderId);
         var recipient = await uow.MemberRepository.GetMemberByIdAsync(createMessageDto.RecipientId);
 
         if (recipient == null || sender == null || sender.Id == createMessageDto.RecipientId)
         {
-            return null; 
+            return Result<MessageDto>.Failure("Cannot send message to this user");
         }
 
         var message = new Message
@@ -30,21 +30,21 @@ public class MessageService(IUnitOfWork uow, ICurrentUserService currentUserServ
 
         uow.MessageRepository.AddMessage(message);
 
-        if (await uow.Complete()) return message.ToDto();
+        if (await uow.Complete()) return Result<MessageDto>.Success(message.ToDto());
 
-        return null;
+        return Result<MessageDto>.Failure("Failed to send message");
     }
 
-    public async Task<bool> DeleteMessageAsync(string messageId)
+    public async Task<Result<object>> DeleteMessageAsync(string messageId)
     {
         var currentUserId = currentUserService.MemberId;
-        if (string.IsNullOrEmpty(currentUserId)) return false;
+        if (string.IsNullOrEmpty(currentUserId)) return Result.Failure("User not found");
 
         var message = await uow.MessageRepository.GetMessage(messageId);
-        if (message == null) return false;
+        if (message == null) return Result.Failure("Message not found");
 
         if (message.SenderId != currentUserId && message.RecipientId != currentUserId)
-            return false; 
+            return Result.Failure("Unauthorized to delete this message");
 
         if (message.SenderId == currentUserId) message.SenderDeleted = true;
         if (message.RecipientId == currentUserId) message.RecipientDeleted = true;
@@ -54,26 +54,28 @@ public class MessageService(IUnitOfWork uow, ICurrentUserService currentUserServ
             uow.MessageRepository.DeleteMessage(message);
         }
 
-        return await uow.Complete();
+        return await uow.Complete() ? Result<object>.Success(new { }) : Result.Failure("Failed to delete message");
     }
 
-    public async Task<PaginatedResult<MessageDto>> GetMessagesForMemberAsync(MessageParams messageParams)
+    public async Task<Result<PaginatedResult<MessageDto>>> GetMessagesForMemberAsync(MessageParams messageParams)
     {
         var memberId = currentUserService.MemberId;
         if (string.IsNullOrEmpty(memberId))
         {
-            return PaginatedResult<MessageDto>.Empty(messageParams.PageNumber, messageParams.PageSize);
+            return Result<PaginatedResult<MessageDto>>.Failure("User not found");
         }
         messageParams.MemberId = memberId;
 
-        return await uow.MessageRepository.GetMessagesForMemberAsync(messageParams);
+        var messages = await uow.MessageRepository.GetMessagesForMemberAsync(messageParams);
+        return Result<PaginatedResult<MessageDto>>.Success(messages);
     }
 
-    public async Task<IReadOnlyList<MessageDto>> GetMessageThread(string recipientId)
+    public async Task<Result<IReadOnlyList<MessageDto>>> GetMessageThread(string recipientId)
     {
         var currentMemberId = currentUserService.MemberId;
-        if (string.IsNullOrEmpty(currentMemberId)) return new List<MessageDto>();
+        if (string.IsNullOrEmpty(currentMemberId)) return Result<IReadOnlyList<MessageDto>>.Failure("User not found");
 
-        return await uow.MessageRepository.GetMessageThread(currentMemberId, recipientId);
+        var messages = await uow.MessageRepository.GetMessageThread(currentMemberId, recipientId);
+        return Result<IReadOnlyList<MessageDto>>.Success(messages);
     }
 }

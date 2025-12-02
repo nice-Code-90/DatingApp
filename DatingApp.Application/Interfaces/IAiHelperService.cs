@@ -1,8 +1,9 @@
-using System.Threading.Tasks;
+using DatingApp.Application.DTOs;
+using DatingApp.Application.Helpers;
 
 namespace DatingApp.Application.Interfaces;
 
-    public interface IAiHelperService
-    {
-        Task<string> GetChatSuggestion(string currentUserId, string recipientId);
-    }
+public interface IAiHelperService
+{
+    Task<Result<SuggestionDto>> GetChatSuggestion(string currentUserId, string recipientId);
+}

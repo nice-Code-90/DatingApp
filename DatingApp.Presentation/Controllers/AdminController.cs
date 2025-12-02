@@ -24,11 +24,9 @@ public class AdminController(
 
         var selectedRoles = roles.Split(",").ToArray();
 
-        var (succeeded, errors) = await adminService.EditRolesAsync(userId, selectedRoles);
+        var result = await adminService.EditRolesAsync(userId, selectedRoles);
 
-        if (!succeeded) return BadRequest(errors);
-
-        return Ok();
+        return HandleResult(result);
     }
 
     [Authorize(Policy = "ModeratePhotoRole")]
@@ -43,11 +41,7 @@ public class AdminController(
     [HttpPost("approve-photo/{photoId}")]
     public async Task<ActionResult> ApprovePhoto(int photoId)
     {
-        var result = await adminService.ApprovePhotoAsync(photoId);
-
-        if (result) return Ok();
-
-        return BadRequest("Failed to approve photo");
+        return HandleResult(await adminService.ApprovePhotoAsync(photoId));
     }
 
 
@@ -55,11 +49,7 @@ public class AdminController(
     [HttpPost("reject-photo/{photoId}")]
     public async Task<ActionResult> RejectPhoto(int photoId)
     {
-        var result = await adminService.RejectPhotoAsync(photoId);
-
-        if (result) return Ok();
-
-        return BadRequest("Failed to reject photo.");
+        return HandleResult(await adminService.RejectPhotoAsync(photoId));
     }
 
     [Authorize(Policy = "RequireAdminRole")]

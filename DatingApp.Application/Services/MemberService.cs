@@ -8,16 +8,16 @@ namespace DatingApp.Application.Services;
 
 public class MemberService(IUnitOfWork uow, IGeocodingService geocodingService, ICacheService cacheService, IPhotoService photoService, ICurrentUserService currentUserService) : IMemberService
 {
-    public async Task<PhotoDto?> AddPhotoAsync(Stream photoStream, string fileName)
+    public async Task<Result<PhotoDto>> AddPhotoAsync(Stream photoStream, string fileName)
     {
         var memberId = currentUserService.MemberId;
-        if (string.IsNullOrEmpty(memberId)) return null;
+        if (string.IsNullOrEmpty(memberId)) return Result<PhotoDto>.Failure("User not found");
 
         var member = await uow.MemberRepository.GetMemberForUpdate(memberId);
-        if (member == null) return null;
+        if (member == null) return Result<PhotoDto>.Failure("Member not found");
 
         var result = await photoService.UploadPhotoAsync(photoStream, fileName);
-        if (result == null) return null;
+        if (result == null) return Result<PhotoDto>.Failure("Failed to upload photo");
 
         var photo = new Photo
         {
@@ -31,41 +31,46 @@ public class MemberService(IUnitOfWork uow, IGeocodingService geocodingService, 
 
         if (await uow.Complete())
         {
-            return new PhotoDto { Id = photo.Id, Url = photo.Url, IsApproved = photo.IsApproved, IsMain = false };
+            var photoDto = new PhotoDto { Id = photo.Id, Url = photo.Url, IsApproved = photo.IsApproved, IsMain = false };
+            return Result<PhotoDto>.Success(photoDto);
         }
 
-        return null;
+        return Result<PhotoDto>.Failure("Problem adding photo");
     }
 
-    public async Task<MemberDto?> GetMemberAsync(string id)
+    public async Task<Result<MemberDto>> GetMemberAsync(string id)
     {
-        return await uow.MemberRepository.GetMemberDtoByIdAsync(id);
+        var member = await uow.MemberRepository.GetMemberDtoByIdAsync(id);
+        return member != null ? Result<MemberDto>.Success(member) : Result<MemberDto>.Failure("Member not found");
     }
 
-    public async Task<IReadOnlyList<PhotoDto>> GetMemberPhotosAsync(string memberId)
+    public async Task<Result<IReadOnlyList<PhotoDto>>> GetMemberPhotosAsync(string memberId)
     {
         var isCurrentUser = currentUserService.MemberId == memberId;
-        return await uow.MemberRepository.GetPhotosForMemberAsync(memberId, isCurrentUser);
+        var photos = await uow.MemberRepository.GetPhotosForMemberAsync(memberId, isCurrentUser);
+        return Result<IReadOnlyList<PhotoDto>>.Success(photos);
     }
 
-    public async Task<bool> DeletePhotoAsync(int photoId)
+    public async Task<Result<object>> DeletePhotoAsync(int photoId)
     {
         var memberId = currentUserService.MemberId;
-        if (string.IsNullOrEmpty(memberId)) return false;
+        if (string.IsNullOrEmpty(memberId)) return Result.Failure("User not found");
 
-        return await photoService.DeleteMemberPhotoAsync(memberId, photoId);
+        var success = await photoService.DeleteMemberPhotoAsync(memberId, photoId);
+        return success ? Result<object>.Success(new { }) : Result.Failure("Problem deleting the photo");
     }
 
-    public async Task<bool> SetMainPhotoAsync(int photoId)
+    public async Task<Result<object>> SetMainPhotoAsync(int photoId)
     {
         var memberId = currentUserService.MemberId;
-        if (string.IsNullOrEmpty(memberId)) return false;
+        if (string.IsNullOrEmpty(memberId)) return Result.Failure("User not found");
 
         var member = await uow.MemberRepository.GetMemberForUpdate(memberId);
-        if (member == null) return false;
+        if (member == null) return Result.Failure("Member not found");
 
         var photo = member.Photos.SingleOrDefault(x => x.Id == photoId);
-        if (photo == null || photo.Url == member.ImageUrl) return false;
+        if (photo == null) return Result.Failure("Photo not found");
+        if (photo.Url == member.ImageUrl) return Result.Failure("This is already your main photo");
 
         member.ImageUrl = photo.Url;
         member.User.ImageUrl = photo.Url;
@@ -73,16 +78,16 @@ public class MemberService(IUnitOfWork uow, IGeocodingService geocodingService, 
         var result = await uow.Complete();
         if (result) await cacheService.RemoveByPrefixAsync("members:");
 
-        return result;
+        return result ? Result<object>.Success(new { }) : Result.Failure("Problem setting main photo");
     }
 
-    public async Task<bool> UpdateMemberAsync(MemberUpdateDto memberUpdateDto)
+    public async Task<Result<object>> UpdateMemberAsync(MemberUpdateDto memberUpdateDto)
     {
         var memberId = currentUserService.MemberId;
-        if (string.IsNullOrEmpty(memberId)) return false;
+        if (string.IsNullOrEmpty(memberId)) return Result.Failure("User not found");
 
         var member = await uow.MemberRepository.GetMemberForUpdate(memberId);
-        if (member == null) return false;
+        if (member == null) return Result.Failure("Member not found");
 
         var originalCity = member.City;
         var originalCountry = member.Country;
@@ -102,25 +107,25 @@ public class MemberService(IUnitOfWork uow, IGeocodingService geocodingService, 
         var result = await uow.Complete();
         if (result) await cacheService.RemoveByPrefixAsync("members:");
 
-        return result;
+        return result ? Result<object>.Success(new { }) : Result.Failure("Failed to update member");
     }
 
-    public async Task<PaginatedResult<MemberDto>?> GetMembersWithFiltersAsync(MemberParams memberParams)
+    public async Task<Result<PaginatedResult<MemberDto>>> GetMembersWithFiltersAsync(MemberParams memberParams)
     {
         var memberId = currentUserService.MemberId;
-        if (string.IsNullOrEmpty(memberId)) return null;
+        if (string.IsNullOrEmpty(memberId)) return Result<PaginatedResult<MemberDto>>.Failure("User not found");
         memberParams.CurrentMemberId = memberId;
         var cacheKey = $"members:{memberParams.PageNumber}-{memberParams.PageSize}:{memberParams.Gender}:{memberParams.MinAge}-{memberParams.MaxAge}:{memberParams.OrderBy}:{memberParams.Distance}";
-        
+
         var cachedResult = await cacheService.GetAsync<PaginatedResult<MemberDto>>(cacheKey);
-        if (cachedResult != null) return cachedResult;
+        if (cachedResult != null) return Result<PaginatedResult<MemberDto>>.Success(cachedResult);
 
         Point? userLocation = null;
         if (memberParams.Distance.HasValue && memberParams.Distance > 0)
         {
-           
+
             var currentUser = await uow.MemberRepository.GetMemberByIdAsync(memberParams.CurrentMemberId);
-            if (currentUser?.Location == null) return null;
+            if (currentUser?.Location == null) return Result<PaginatedResult<MemberDto>>.Failure("Your location is not available to filter by distance.");
             userLocation = currentUser.Location;
         }
 
@@ -128,7 +133,7 @@ public class MemberService(IUnitOfWork uow, IGeocodingService geocodingService, 
 
         await cacheService.SetAsync(cacheKey, result, TimeSpan.FromMinutes(2));
 
-        return result;
+        return Result<PaginatedResult<MemberDto>>.Success(result);
     }
 
 }
