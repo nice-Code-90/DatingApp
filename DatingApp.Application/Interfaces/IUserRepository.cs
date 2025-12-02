@@ -8,4 +8,6 @@ public interface IUserRepository
     Task<IEnumerable<UserWithRolesDto>> GetUsersWithRolesAsync();
     Task<(bool Succeeded, string[]? Errors)> EditRolesAsync(string userId, string[] selectedRoles);
     Task<AppUser?> FindUserByIdAsync(string userId);
+    Task<IEnumerable<Member>> GetMembersForAiSyncAsync();
+    Task<Member?> GetMemberByIdAsync(string id);
 }
