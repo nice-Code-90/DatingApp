@@ -1,64 +1,85 @@
-# DatingApp - A Modern Full-Stack Dating Application
+# DatingApp - AI-Powered Smart Dating Platform
 
-This project is a feature-rich, full-stack web application built with a .NET backend and an Angular frontend. It was developed as a portfolio piece to showcase skills in building complex, real-time, service-oriented applications from the ground up.
+This project is a feature-rich, full-stack web application built with a **.NET 9** backend and an **Angular 20** frontend.
+
+It goes beyond standard CRUD applications by implementing a **RAG (Retrieval-Augmented Generation)** architecture. It uses a Vector Database to enable semantic matchmaking, allowing users to find matches based on meaning and context rather than just keyword matching.
 
 **Live Demo:** [https://dating-2025.azurewebsites.net/](https://dating-2025.azurewebsites.net/)
 *(Note: The free-tier Azure App Service may experience a cold start, leading to a slower initial load time.)*
 
 ## Application Preview
 
-Here's a glimpse of the application in action.
-
 ![Member listing page](demo/filtering.gif)
-
 _Member listing with filtering options._
 
-![Member listing page](demo/home.gif)
-
+![Home page](demo/home.gif)
 _Home page_
+
+## 🧠 AI & RAG Features (New)
+
+This application implements a modern **AI Engineer stack** within a Clean Architecture:
+
+* **Semantic Matchmaking (RAG):**
+    * Users can search for matches using natural language (e.g., *"Someone who loves hiking and outdoor adventures in Budapest"*).
+    * **How it works:** User profiles are vectorized (converted to mathematical embeddings) using **Google Gemini** models and stored in a **Qdrant** Vector Database.
+    * The system performs a cosine similarity search to find profiles that match the *intent* and *meaning* of the search query, not just exact keywords.
+* **AI-Powered Chat Suggestions:**
+    * Integrates **Google Gemini** to analyze conversation context and suggest ice-breakers or replies to keep the conversation flowing.
+* **Hybrid Data Handling:**
+    * Synchronizes structured data (SQL Server) with unstructured semantic data (Qdrant) automatically using database seeders and domain services.
 
 ## Key Features
 
-*   **User Authentication & Profile Management:** Secure user registration and login using JWT (JSON Web Token) authentication. Users can create and edit their profiles, including a personal description, photos, and location details.
-*   **Photo Uploads & Management:** Users can upload photos to their profiles. Image storage and delivery are handled by **Cloudinary**, a cloud-based image management service. Photos can be set as the main profile picture or deleted.
-*   **Admin & Moderation:** An admin panel allows for user role management (`Admin`, `Moderator`, `Member`). A dedicated photo moderation queue enables admins and moderators to approve or reject new photos.
-*   **Geolocation-based Distance Filtering:** Users can find others based on distance. Addresses are converted to geographic coordinates using the **OpenCage Geocoding API**, and the data is stored in the database using a `geography` spatial data type for efficient querying.
-*   **Real-time Presence:** Users can see who is currently online, implemented using **SignalR** for real-time, low-latency communication between the client and server.
-*   **Real-time Messaging:** A private, one-on-one messaging system allows users to chat in real-time, also built with SignalR. The system includes indicators for unread messages.
-*   **AI-Powered Chat Suggestions:** If a user gets stuck in a conversation, they can request a chat suggestion from the **Google Gemini API** to help keep the conversation flowing.
-*   **Advanced Filtering & Sorting:** The member list can be filtered by age, gender, and last active time, in addition to distance.
+* **User Authentication & Profile Management:** Secure user registration and login using JWT (JSON Web Token) authentication with ASP.NET Core Identity.
+* **Real-time Presence & Messaging:** Built with **SignalR** for live online status updates and instant private messaging.
+* **Geolocation-based Filtering:** Filters users by physical distance using **NetTopologySuite** (spatial SQL queries) and **OpenCage Geocoding API**.
+* **Photo Management:** Cloud-based image storage and transformation using **Cloudinary**.
+* **Admin & Moderation:** Dedicated interface for managing roles and approving/rejecting user photos.
+* **Advanced Filtering:** Sort and filter by age, gender, created date, and last active timestamp.
 
 ## Technology Stack
 
-This application follows Clean Architecture principles, separating concerns into distinct Domain, Application, Infrastructure, and Presentation layers.
+The solution follows **Clean Architecture** principles, enforcing a strict separation of concerns (Domain, Application, Infrastructure, Presentation) and using the latest .NET standards.
 
 ### Backend (.NET 9)
 
-*   **Framework:** ASP.NET Core
-*   **Database:** SQL Server
-*   **ORM:** Entity Framework Core
-*   **Spatial Data:** NetTopologySuite for handling geolocation data.
-*   **Authentication:** ASP.NET Core Identity & JWT (JSON Web Tokens)
-*   **Real-time Communication:** SignalR
-*   **Image Management:** Cloudinary
-*   **Geocoding:** OpenCage Geocoding API
-*   **Artificial Intelligence:** Google Gemini API
-*   **Architecture:** Clean Architecture
-*   **Hosting:** Microsoft Azure App Service & Azure SQL Database
+* **Framework:** ASP.NET Core Web API
+* **AI & Vectors:**
+    * **Microsoft.Extensions.AI:** The latest standard for AI integration in .NET.
+    * **Vector Database:** **Qdrant** (running in Docker/Cloud) for storing high-dimensional embeddings.
+    * **LLM Integration:** Google Gemini API (for embeddings and chat generation).
+* **Database:** SQL Server (with Entity Framework Core).
+* **Spatial Data:** NetTopologySuite.
+* **Real-time:** SignalR.
+* **Testing/Architecture:** Dependency Injection, Repository Pattern, Unit of Work.
 
 ### Frontend (Angular 20)
 
-*   **Framework:** Angular
-*   **Language:** TypeScript
-*   **Styling:** Tailwind CSS
-*   **UI Components:** DaisyUI (a component library for Tailwind CSS)
-*   **State Management:** Angular Signals
-*   **HTTP Client:** Angular's `HttpClient` for communicating with the backend API.
-*   **Real-time Communication:** SignalR Client
+* **Framework:** Angular (latest version).
+* **State Management:** Angular Signals.
+* **Styling:** Tailwind CSS + DaisyUI.
+* **Communication:** HTTP Client & SignalR Client.
 
+## Local Development Setup
+
+To run the AI features locally, you need a running Qdrant instance.
+
+1.  **Start Infrastructure:**
+    ```bash
+    docker compose up -d
+    ```
+    This starts the SQL Server and Qdrant Vector DB containers.
+
+2.  **Configuration:**
+    Ensure your `appsettings.json` contains valid API keys for Cloudinary, OpenCage, and Google Gemini.
+
+3.  **Run Backend:**
+    ```bash
+    dotnet watch run --project DatingApp.Presentation
+    ```
+    *On startup, the Database Seeder will automatically vectorize seed users and upload them to Qdrant.*
 ## Project Goal
 
-The primary goal of this project is to demonstrate a comprehensive understanding of modern web development techniques and technologies within a complex, well-structured application. It emphasizes clean code, a maintainable architecture, and the professional integration of third-party services.
+The primary goal of this project is to serve as a practical case study on integrating modern AI technologies into a robust, enterprise-grade .NET application. It demonstrates how to enhance a traditional full-stack application with cutting-edge features like Retrieval-Augmented Generation (RAG), vector search, and LLM-driven interactions, all while strictly adhering to Clean Architecture principles.
 
-
-
+The project explores pragmatic solutions for bridging the gap between structured relational data and unstructured semantic data, showcasing a modern approach to building intelligent, feature-rich applications.
