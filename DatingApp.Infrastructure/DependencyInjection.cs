@@ -5,7 +5,7 @@ using DatingApp.Infrastructure.Services;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.SemanticKernel.Connectors.Google;
-using Microsoft.SemanticKernel.Embeddings;
+using Microsoft.Extensions.AI;
 
 namespace DatingApp.Infrastructure;
 
@@ -15,25 +15,30 @@ public static class DependencyInjection
     {
         services.AddScoped<ITokenService, TokenService>();
         services.AddScoped<IPhotoService, PhotoService>();
+        services.AddScoped<IMemberRepository, MemberRepository>();
+        services.AddScoped<IMessageRepository, MessageRepository>();
+        services.AddScoped<ILikesRepository, LikesRepository>();
+        services.AddScoped<IPhotoRepository, PhotoRepository>();
+        services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();
         services.AddScoped<IAiHelperService, AiHelperService>();
-        services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IGeocodingService, GeocodingService>();
         services.AddScoped<ICacheService, InMemoryCacheService>();
         services.AddScoped<IDbInitializer, DbInitializer>();
+
         services.AddKernel();
 
-        services.AddSingleton<ITextEmbeddingGenerationService>(sp =>
+        services.AddSingleton<IEmbeddingGenerator<string, Embedding<float>>>(sp =>
         {
             var apiKey = configuration["GeminiSettings:ApiKey"];
             if (string.IsNullOrEmpty(apiKey)) throw new Exception("Gemini API Key is missing");
-
-            return new GoogleAITextEmbeddingGenerationService(
+            return new GoogleAIEmbeddingGenerator(
                 modelId: "text-embedding-004",
                 apiKey: apiKey,
                 apiVersion: GoogleAIVersion.V1_Beta
             );
         });
+
         services.AddScoped<IAiMatchmakingService, AiMatchmakingService>();
         return services;
     }

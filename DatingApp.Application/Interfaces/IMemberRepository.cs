@@ -14,4 +14,7 @@ public interface IMemberRepository
     Task<PaginatedResult<MemberDto>> GetMembersWithFiltersAsync(MemberParams memberParams, Point? currentUserLocation);
     Task<IReadOnlyList<PhotoDto>> GetPhotosForMemberAsync(string memberId, bool isCurrentUser);
     Task<Member?> GetMemberForUpdate(string id);
+
+    Task<IEnumerable<Member>> GetMembersForAiSyncAsync();
+    Task<IEnumerable<Member>> GetMembersByIdsAsync(IEnumerable<string> ids);
 }

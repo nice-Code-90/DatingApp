@@ -1,8 +1,9 @@
 using DatingApp.Application.Interfaces;
+using DatingApp.Application.DTOs;
+using DatingApp.Application.Extensions;
 using DatingApp.Domain.Entities;
 using Microsoft.Extensions.Configuration;
-using Microsoft.SemanticKernel;
-using Microsoft.SemanticKernel.Embeddings;
+using Microsoft.Extensions.AI;
 using Qdrant.Client;
 using Qdrant.Client.Grpc;
 
@@ -11,19 +12,22 @@ namespace DatingApp.Infrastructure.Services
     public class AiMatchmakingService : IAiMatchmakingService
     {
         private readonly QdrantClient _qdrantClient;
-
-#pragma warning disable CS0618
-        private readonly ITextEmbeddingGenerationService _embeddingService;
-#pragma warning restore CS0618
+        private readonly IUnitOfWork _unitOfWork;
+        private readonly IEmbeddingGenerator<string, Embedding<float>> _embeddingService;
 
         private const string CollectionName = "members_index";
         private const ulong VectorSize = 768;
 
-        public AiMatchmakingService(IConfiguration config, ITextEmbeddingGenerationService embeddingService)
+        public AiMatchmakingService(
+            IConfiguration config,
+            IEmbeddingGenerator<string, Embedding<float>> embeddingService,
+            IUnitOfWork unitOfWork)
         {
             _embeddingService = embeddingService;
+            _unitOfWork = unitOfWork;
+
             string qdrantUrl = config["Qdrant:Url"] ?? "http://localhost:6334";
-            string apiKey = config["Qdrant:ApiKey"];
+            string? apiKey = config["Qdrant:ApiKey"];
 
             if (!string.IsNullOrEmpty(apiKey))
                 _qdrantClient = new QdrantClient(new Uri(qdrantUrl), apiKey);
@@ -48,7 +52,7 @@ namespace DatingApp.Infrastructure.Services
                                   $"City: {member.City}, {member.Country}. " +
                                   $"Description: {member.Description ?? "No description provided."}";
 
-            var embedding = await _embeddingService.GenerateEmbeddingAsync(textDescription);
+            var embedding = await _embeddingService.GenerateVectorAsync(textDescription);
 
             var pointId = Guid.NewGuid();
 
@@ -66,9 +70,11 @@ namespace DatingApp.Infrastructure.Services
 
             await _qdrantClient.UpsertAsync(CollectionName, new[] { point });
         }
+
         public async Task<IEnumerable<string>> FindMatchesIdsAsync(string searchQuery)
         {
-            var queryVector = await _embeddingService.GenerateEmbeddingAsync(searchQuery);
+            var queryVector = await _embeddingService.GenerateVectorAsync(searchQuery);
+
             var searchResult = await _qdrantClient.SearchAsync(
                 CollectionName,
                 queryVector.ToArray(),
@@ -85,6 +91,19 @@ namespace DatingApp.Infrastructure.Services
                 }
             }
             return ids;
+        }
+
+        public async Task<IEnumerable<MemberDto>> FindMatchingMembersAsync(string searchQuery)
+        {
+            var matchIds = await FindMatchesIdsAsync(searchQuery);
+
+            if (!matchIds.Any())
+            {
+                return Enumerable.Empty<MemberDto>();
+            }
+            var members = await _unitOfWork.MemberRepository.GetMembersByIdsAsync(matchIds);
+
+            return members.Select(member => member.ToDto()).Where(dto => dto != null)!;
         }
     }
 }

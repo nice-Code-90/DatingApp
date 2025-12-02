@@ -16,4 +16,17 @@ public static class PhotoExtensions
             IsApproved = p.IsApproved
         };
     }
+
+    public static PhotoDto? ToDto(this Photo photo)
+    {
+        if (photo == null) return null;
+
+        return new PhotoDto
+        {
+            Id = photo.Id,
+            Url = photo.Url,
+            IsMain = photo.Member?.ImageUrl == photo.Url,
+            IsApproved = photo.IsApproved
+        };
+    }
 }

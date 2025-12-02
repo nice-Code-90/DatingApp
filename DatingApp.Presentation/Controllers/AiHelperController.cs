@@ -10,18 +10,14 @@ namespace DatingApp.Presentation.Controllers
     public class AiHelperController : BaseApiController
     {
         private readonly IAiHelperService _aiHelperService;
-
         private readonly IAiMatchmakingService _aiMatchmakingService;
-        private readonly IUnitOfWork _unitOfWork;
 
         public AiHelperController(
             IAiHelperService aiHelperService,
-            IAiMatchmakingService aiMatchmakingService,
-            IUnitOfWork unitOfWork)
+            IAiMatchmakingService aiMatchmakingService)
         {
             _aiHelperService = aiHelperService;
             _aiMatchmakingService = aiMatchmakingService;
-            _unitOfWork = unitOfWork;
         }
 
         [HttpGet("suggestion/{recipientId}")]
@@ -41,30 +37,9 @@ namespace DatingApp.Presentation.Controllers
         {
             if (string.IsNullOrEmpty(query)) return BadRequest("Search query cannot be empty");
 
-            var matchIds = await _aiMatchmakingService.FindMatchesIdsAsync(query);
+            var members = await _aiMatchmakingService.FindMatchingMembersAsync(query);
 
-            if (!matchIds.Any()) return NotFound("No matches found based on your description.");
-
-            var members = new List<MemberDto>();
-
-            foreach (var id in matchIds)
-            {
-                var member = await _unitOfWork.UserRepository.GetMemberByIdAsync(id);
-
-                if (member != null)
-                {
-                    members.Add(new MemberDto
-                    {
-                        Id = member.Id,
-                        DisplayName = member.DisplayName,
-                        ImageUrl = member.ImageUrl,
-                        Age = member.DateOfBirth.CalculateAge(),
-                        City = member.City,
-                        Country = member.Country,
-                        Gender = member.Gender,
-                    });
-                }
-            }
+            if (!members.Any()) return NotFound("No matches found based on your description.");
 
             return Ok(members);
         }

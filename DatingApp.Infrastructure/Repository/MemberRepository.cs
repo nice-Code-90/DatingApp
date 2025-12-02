@@ -94,4 +94,19 @@ public class MemberRepository(AppDbContext context) : IMemberRepository
     {
         context.Entry(member).State = EntityState.Modified;
     }
+
+    public async Task<IEnumerable<Member>> GetMembersForAiSyncAsync()
+    {
+        return await context.Members
+            .AsNoTracking()
+            .ToListAsync();
+    }
+
+    public async Task<IEnumerable<Member>> GetMembersByIdsAsync(IEnumerable<string> ids)
+    {
+        return await context.Members
+            .Include(m => m.Photos)
+            .Where(m => ids.Contains(m.Id))
+            .ToListAsync();
+    }
 }

@@ -27,4 +27,28 @@ public static class MemberExtensions
                 .ToList()
         };
     }
+
+    public static MemberDto? ToDto(this Member member)
+    {
+        if (member == null) return null;
+
+        return new MemberDto
+        {
+            Id = member.Id,
+            DisplayName = member.DisplayName,
+            ImageUrl = member.ImageUrl,
+            Age = member.DateOfBirth.CalculateAge(),
+            City = member.City,
+            Country = member.Country,
+            Gender = member.Gender,
+            Description = member.Description,
+            Created = member.Created,
+            LastActive = member.LastActive,
+            Photos = member.Photos?
+                .Where(p => p.IsApproved)
+                .Select(p => p.ToDto())
+                .Where(p => p != null)
+                .ToList()!
+        };
+    }
 }
