@@ -10,28 +10,23 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using DatingApp.Presentation.Helpers;
 using Microsoft.OpenApi.Models;
-using DatingApp.Application; 
-using DatingApp.Infrastructure; 
+using DatingApp.Application;
+using DatingApp.Infrastructure;
 using DatingApp.Application.Extensions;
 using DatingApp.Application.Helpers;
-
-
-
+using DatingApp.Presentation.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-
-
 builder.Services.AddControllers().AddJsonOptions(options =>
 {
-    
     options.JsonSerializerOptions.Converters.Add(new NetTopologySuite.IO.Converters.GeoJsonConverterFactory());
 });
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
-    
+
 
     options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
@@ -62,16 +57,16 @@ builder.Services.AddSwaggerGen(options =>
 builder.Services.AddDbContext<AppDbContext>(opt =>
 {
     opt.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"),
-        
+
         sqlServerOptions => sqlServerOptions.UseNetTopologySuite()
     );
 });
 builder.Services.AddCors();
-builder.Services.AddHttpClient(); 
+builder.Services.AddHttpClient();
 
 builder.Services.Configure<CloudinarySettings>(builder.Configuration.GetSection("CloudinarySettings"));
-builder.Services.Configure<OpenCageSettings>(builder.Configuration.GetSection("OpenCageSettings")); 
-builder.Services.Configure<GeminiSettings>(builder.Configuration.GetSection("GeminiSettings")); 
+builder.Services.Configure<OpenCageSettings>(builder.Configuration.GetSection("OpenCageSettings"));
+builder.Services.Configure<GeminiSettings>(builder.Configuration.GetSection("GeminiSettings"));
 builder.Services.AddSignalR();
 builder.Services.AddSingleton<PresenceTracker>();
 builder.Services.AddIdentityCore<AppUser>(opt =>
@@ -117,7 +112,7 @@ builder.Services.AddAuthorizationBuilder()
     .AddPolicy("ModeratePhotoRole", policy => policy.RequireRole("Admin", "Moderator"));
 
 builder.Services.AddApplicationServices();
-builder.Services.AddInfrastructureServices();
+builder.Services.AddInfrastructureServices(builder.Configuration);
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 builder.Services.AddMemoryCache();
@@ -142,13 +137,13 @@ app.UseMiddleware<ExceptionMiddleware>();
 
 app.Use(async (context, next) =>
 {
-    
+
     context.Response.Headers.Append("X-Frame-Options", "SAMEORIGIN");
-    
+
     context.Response.Headers.Append("X-Content-Type-Options", "nosniff");
-    
+
     context.Response.Headers.Append("Referrer-Policy", "strict-origin-when-cross-origin");
-    
+
     context.Response.Headers.Append("Permissions-Policy", "camera=(), microphone=()");
 
     var csp = new StringBuilder()
@@ -199,16 +194,4 @@ async Task SeedDatabaseAsync()
     using var scope = app.Services.CreateScope();
     var initializer = scope.ServiceProvider.GetRequiredService<IDbInitializer>();
     await initializer.InitializeAsync();
-}
-
-public class CurrentUserService : ICurrentUserService
-{
-    private readonly IHttpContextAccessor _httpContextAccessor;
-
-    public CurrentUserService(IHttpContextAccessor httpContextAccessor)
-    {
-        _httpContextAccessor = httpContextAccessor;
-    }
-
-    public string? MemberId => _httpContextAccessor.HttpContext?.User?.GetMemberId();
 }
