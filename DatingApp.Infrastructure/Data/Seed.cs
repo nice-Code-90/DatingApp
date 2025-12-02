@@ -1,6 +1,5 @@
-using System.Security.Cryptography;
-using System.Text;
 using System.Reflection;
+using System.Text;
 using System.Text.Json;
 using DatingApp.Application.DTOs;
 using DatingApp.Application.Interfaces;
@@ -12,9 +11,23 @@ namespace DatingApp.Infrastructure.Data;
 
 public class Seed
 {
-    public static async Task SeedUsers(UserManager<AppUser> userManager, IGeocodingService geocodingService)
+    public static async Task SeedUsers(
+        UserManager<AppUser> userManager,
+        IGeocodingService geocodingService,
+        IAiMatchmakingService aiMatchmakingService)
     {
         if (await userManager.Users.AnyAsync()) return;
+
+        try
+        {
+            await aiMatchmakingService.InitCollectionAsync();
+        }
+        catch (Exception ex)
+        {
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.WriteLine($"[AI] Init Failed: {ex.Message}");
+            Console.ResetColor();
+        }
 
         var assembly = Assembly.GetExecutingAssembly();
         var resourceName = "DatingApp.Infrastructure.Data.UserSeedData.json";
@@ -32,6 +45,7 @@ public class Seed
                 memberData = await reader.ReadToEndAsync();
             }
         }
+
         var members = JsonSerializer.Deserialize<List<SeedUserDto>>(memberData);
 
         if (members == null)
@@ -42,7 +56,6 @@ public class Seed
 
         foreach (var member in members)
         {
-
             var user = new AppUser
             {
                 Id = member.Id,
@@ -67,7 +80,6 @@ public class Seed
             };
 
             var location = await geocodingService.GetCoordinatesForAddressAsync(member.City, member.Country);
-            
             if (location != null && double.IsFinite(location.X) && double.IsFinite(location.Y))
             {
                 user.Member.Location = location;
@@ -82,11 +94,35 @@ public class Seed
 
             var result = await userManager.CreateAsync(user, "Pa$$w0rd");
 
-            if (!result.Succeeded)
+            if (result.Succeeded)
             {
-                Console.WriteLine(result.Errors.First().Description);
+                await userManager.AddToRoleAsync(user, "Member");
+
+                try
+                {
+                    Console.WriteLine($"[AI] Syncing profile for: {user.DisplayName}...");
+
+                    //vector generation by Gemini
+                    await aiMatchmakingService.UpdateMemberProfileAsync(user.Member);
+
+                    Console.WriteLine($"[AI] -> Success!");
+                }
+                catch (Exception ex)
+                {
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    Console.WriteLine($"[AI] Failed to sync {user.DisplayName}. Error: {ex.Message}");
+
+                    if (ex.InnerException != null)
+                    {
+                        Console.WriteLine($"[AI] Details: {ex.InnerException.Message}");
+                    }
+                    Console.ResetColor();
+                }
             }
-            await userManager.AddToRoleAsync(user, "Member");
+            else
+            {
+                Console.WriteLine($"Error creating user {user.DisplayName}: {result.Errors.First().Description}");
+            }
         }
 
         var admin = new AppUser
@@ -96,7 +132,10 @@ public class Seed
             DisplayName = "Admin"
         };
 
-        await userManager.CreateAsync(admin, "Pa$$w0rd");
-        await userManager.AddToRolesAsync(admin, ["Admin", "Moderator"]);
+        var adminResult = await userManager.CreateAsync(admin, "Pa$$w0rd");
+        if (adminResult.Succeeded)
+        {
+            await userManager.AddToRolesAsync(admin, ["Admin", "Moderator"]);
+        }
     }
 }

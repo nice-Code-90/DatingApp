@@ -10,15 +10,16 @@ public class DbInitializer(
     ILogger<DbInitializer> logger,
     AppDbContext context,
     UserManager<AppUser> userManager,
-    IGeocodingService geocodingService) : IDbInitializer
+    IGeocodingService geocodingService,
+    IAiMatchmakingService aiMatchmakingService) : IDbInitializer
 {
     public async Task InitializeAsync()
     {
         try
         {
             await context.Database.MigrateAsync();
-            await context.Connections.ExecuteDeleteAsync(); 
-            await Seed.SeedUsers(userManager, geocodingService);
+            await context.Connections.ExecuteDeleteAsync();
+            await Seed.SeedUsers(userManager, geocodingService, aiMatchmakingService);
         }
         catch (Exception ex)
         {
