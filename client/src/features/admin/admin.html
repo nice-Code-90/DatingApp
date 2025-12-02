@@ -20,3 +20,13 @@
 } @if (activeTab==='photos'){
 <app-photo-management />
 }
+@if (activeTab === 'actions') {
+<div class="flex flex-col gap-4 p-4 bg-base-200 rounded-lg">
+  <button class="btn btn-primary" (click)="seedUsers()" [disabled]="isSeeding()">
+    @if (isSeeding()) {
+    <span class="loading loading-spinner"></span>
+    }
+    {{ isSeeding() ? 'Seeding started...' : 'Upload Demo Users' }}
+  </button>
+</div>
+}

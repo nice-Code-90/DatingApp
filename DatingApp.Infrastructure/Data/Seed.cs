@@ -6,17 +6,37 @@ using DatingApp.Application.Interfaces;
 using DatingApp.Domain.Entities;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace DatingApp.Infrastructure.Data;
 
 public class Seed
 {
+    public static async Task SeedAdmin(UserManager<AppUser> userManager)
+    {
+        if (await userManager.Users.AnyAsync(u => u.UserName == "admin@test.com")) return;
+
+        var admin = new AppUser
+        {
+            UserName = "admin@test.com",
+            Email = "admin@test.com",
+            DisplayName = "Admin"
+        };
+
+        var adminResult = await userManager.CreateAsync(admin, "Pa$$w0rd");
+        if (adminResult.Succeeded)
+        {
+            await userManager.AddToRolesAsync(admin, ["Admin", "Moderator"]);
+        }
+    }
     public static async Task SeedUsers(
+        ILogger logger,
         UserManager<AppUser> userManager,
         IGeocodingService geocodingService,
         IAiMatchmakingService aiMatchmakingService)
     {
-        if (await userManager.Users.AnyAsync()) return;
+        // Only seed if there are no non-admin users
+        if (await userManager.Users.AnyAsync(u => u.UserName != "admin@test.com")) return;
 
         try
         {
@@ -24,9 +44,8 @@ public class Seed
         }
         catch (Exception ex)
         {
-            Console.ForegroundColor = ConsoleColor.Red;
-            Console.WriteLine($"[AI] Init Failed: {ex.Message}");
-            Console.ResetColor();
+            logger.LogError(ex, "[AI] Init Failed");
+            return; // Stop seeding if collection initialization fails
         }
 
         var assembly = Assembly.GetExecutingAssembly();
@@ -37,7 +56,7 @@ public class Seed
         {
             if (stream == null)
             {
-                Console.WriteLine($"Error: Could not find the embedded resource '{resourceName}'.");
+                logger.LogError("Error: Could not find the embedded resource '{resourceName}'.", resourceName);
                 return;
             }
             using (var reader = new StreamReader(stream, Encoding.UTF8))
@@ -50,7 +69,7 @@ public class Seed
 
         if (members == null)
         {
-            Console.WriteLine("No members in seed data");
+            logger.LogWarning("No members in seed data");
             return;
         }
 
@@ -100,42 +119,25 @@ public class Seed
 
                 try
                 {
-                    Console.WriteLine($"[AI] Syncing profile for: {user.DisplayName}...");
+                    logger.LogInformation("[AI] Syncing profile for: {DisplayName}...", user.DisplayName);
 
                     //vector generation by Gemini
                     await aiMatchmakingService.UpdateMemberProfileAsync(user.Member);
 
-                    Console.WriteLine($"[AI] -> Success!");
+                    logger.LogInformation("[AI] -> Success!");
                 }
                 catch (Exception ex)
                 {
-                    Console.ForegroundColor = ConsoleColor.Red;
-                    Console.WriteLine($"[AI] Failed to sync {user.DisplayName}. Error: {ex.Message}");
-
-                    if (ex.InnerException != null)
-                    {
-                        Console.WriteLine($"[AI] Details: {ex.InnerException.Message}");
-                    }
-                    Console.ResetColor();
+                    logger.LogError(ex, "[AI] Failed to sync {DisplayName}", user.DisplayName);
                 }
+
+                logger.LogInformation("[DEBUG] User {DisplayName} processed successfully. Waiting before next...", member.DisplayName);
+                await Task.Delay(1100);
             }
             else
             {
-                Console.WriteLine($"Error creating user {user.DisplayName}: {result.Errors.First().Description}");
+                logger.LogError("Error creating user {DisplayName}: {Error}", user.DisplayName, result.Errors.First().Description);
             }
-        }
-
-        var admin = new AppUser
-        {
-            UserName = "admin@test.com",
-            Email = "admin@test.com",
-            DisplayName = "Admin"
-        };
-
-        var adminResult = await userManager.CreateAsync(admin, "Pa$$w0rd");
-        if (adminResult.Succeeded)
-        {
-            await userManager.AddToRolesAsync(admin, ["Admin", "Moderator"]);
         }
     }
 }

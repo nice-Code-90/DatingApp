@@ -39,7 +39,7 @@ public static class DependencyInjection
             );
         });
 
-        services.AddSingleton<IAiMatchmakingService, AiMatchmakingService>();
+        services.AddScoped<IAiMatchmakingService, AiMatchmakingService>();
         return services;
     }
 }

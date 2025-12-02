@@ -17,14 +17,23 @@ public class DbInitializer(
     {
         try
         {
+            await context.Database.EnsureDeletedAsync();
             await context.Database.MigrateAsync();
             await context.Connections.ExecuteDeleteAsync();
-            await Seed.SeedUsers(userManager, geocodingService, aiMatchmakingService);
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "An error occurred during database initialization");
-            throw;
+            logger.LogError(ex, "An error occurred during database migration.");
+            // We don't re-throw here to allow the app to start even if DB migration fails.
+        }
+
+        try
+        {
+            await Seed.SeedAdmin(userManager);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "An error occurred during admin seeding. The app will continue to start.");
         }
     }
 }

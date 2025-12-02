@@ -5,6 +5,7 @@ using DatingApp.Domain.Entities;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.AI;
 using Qdrant.Client;
+using Microsoft.Extensions.Logging;
 using Qdrant.Client.Grpc;
 
 namespace DatingApp.Infrastructure.Services
@@ -14,6 +15,7 @@ namespace DatingApp.Infrastructure.Services
         private readonly QdrantClient _qdrantClient;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IEmbeddingGenerator<string, Embedding<float>> _embeddingService;
+        private readonly ILogger<AiMatchmakingService> _logger;
 
         private const string CollectionName = "members_index";
         private const ulong VectorSize = 768;
@@ -21,18 +23,19 @@ namespace DatingApp.Infrastructure.Services
         public AiMatchmakingService(
             IConfiguration config,
             IEmbeddingGenerator<string, Embedding<float>> embeddingService,
-            IUnitOfWork unitOfWork)
+            IUnitOfWork unitOfWork,
+            ILogger<AiMatchmakingService> logger)
         {
             _embeddingService = embeddingService;
             _unitOfWork = unitOfWork;
+            _logger = logger;
 
             string qdrantUrl = config["Qdrant:Url"] ?? "http://localhost:6334";
             string? apiKey = config["Qdrant:ApiKey"];
 
-            if (!string.IsNullOrEmpty(apiKey))
-                _qdrantClient = new QdrantClient(new Uri(qdrantUrl), apiKey);
-            else
-                _qdrantClient = new QdrantClient(new Uri(qdrantUrl));
+            _logger.LogInformation("[QDRANT_CLIENT_INIT] Initializing QdrantClient for URL: {QdrantUrl}. Using REST API mode.", qdrantUrl);
+
+            _qdrantClient = new QdrantClient(address: new Uri(qdrantUrl), apiKey: apiKey);
         }
 
         public async Task InitCollectionAsync()

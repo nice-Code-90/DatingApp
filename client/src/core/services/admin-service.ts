@@ -34,4 +34,8 @@ export class AdminService {
   rejectPhoto(photoId: number) {
     return this.http.post(this.baseUrl + 'admin/reject-photo/' + photoId, {});
   }
+
+  seedUsers() {
+    return this.http.post(this.baseUrl + 'admin/seed-users', {});
+  }
 }
