@@ -53,7 +53,7 @@ The solution follows **Clean Architecture** principles, enforcing a strict separ
 * **Real-time:** SignalR.
 * **Testing/Architecture:** Dependency Injection, Repository Pattern, Unit of Work.
 
-### Frontend (Angular 20)
+### Frontend (Angular 21)
 
 * **Framework:** Angular (latest version).
 * **State Management:** Angular Signals.
