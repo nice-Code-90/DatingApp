@@ -17,7 +17,6 @@ public class DbInitializer(
     {
         try
         {
-            await context.Database.EnsureDeletedAsync();
             await context.Database.MigrateAsync();
             await context.Connections.ExecuteDeleteAsync();
         }
