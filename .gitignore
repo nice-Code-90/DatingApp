@@ -486,3 +486,8 @@ DatingApp.Presentation/appsettings.json
 DatingApp.Presentation/appsettings.Development.json
 DatingApp.Presentation/dating.db*
 DatingApp.Presentation/wwwroot
+
+# Database data
+qdrant_data/
+**/qdrant_data/
+qdrant_storage/
