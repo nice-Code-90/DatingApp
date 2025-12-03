@@ -1,12 +1,13 @@
 using System.Security.Claims;
 using DatingApp.Application.DTOs;
 using DatingApp.Application.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using DatingApp.Application.Extensions;
 
 namespace DatingApp.Presentation.Controllers
 {
-    [Route("api/[controller]")]
+    [Authorize]
     public class AiHelperController : BaseApiController
     {
         private readonly IAiHelperService _aiHelperService;
@@ -23,15 +24,13 @@ namespace DatingApp.Presentation.Controllers
         [HttpGet("suggestion/{recipientId}")]
         public async Task<ActionResult<SuggestionDto>> GetSuggestion(string recipientId)
         {
-            var currentUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-
-            if (string.IsNullOrEmpty(currentUserId)) return Unauthorized();
+            var currentUserId = User.GetMemberId();
 
             return HandleResult(await _aiHelperService.GetChatSuggestion(currentUserId, recipientId));
         }
 
         [HttpGet("search")]
-        public async Task<ActionResult<IEnumerable<MemberDto>>> SmartSearch([FromQuery] string query)
+        public async Task<ActionResult<IEnumerable<MemberDto>>> SearchMembers([FromQuery] string query)
         {
 
             var result = await _aiMatchmakingService.FindMatchingMembersAsync(query);

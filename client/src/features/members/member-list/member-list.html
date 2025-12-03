@@ -1,5 +1,22 @@
 @if (paginatedMembers(); as paginatedResult) {
   <div class="flex-col flex w-full">
+    <div class="mb-6 px-5">
+      <div class="flex justify-between items-center mb-2">
+        <h3 class="text-lg font-semibold text-primary">Your Personal Love Algorithm</h3>
+        <div class="badge badge-secondary">Powered by Gemini</div>
+      </div>
+      <form #searchForm="ngForm" (ngSubmit)="onSmartSearch(searchForm.value.query)" class="flex items-center gap-2">
+        <input
+          type="text"
+          name="query"
+          ngModel
+          placeholder="Tell us who you're looking for, and our unique algorithm will connect you with the most compatible members."
+          class="input input-bordered w-full"
+        />
+        <button type="submit" class="btn btn-accent">Find Matches</button>
+      </form>
+    </div>
+
     <div class="flex flex-col md:flex-row justify-between md:items-center gap-4 mb-6">
       <div class="flex flex-col sm:flex-row gap-3 items-center flex-wrap">
         <button (click)="openModal()" class="btn btn-primary">Select Filters</button>

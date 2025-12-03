@@ -2,13 +2,14 @@ import { Component, inject, signal, ViewChild } from '@angular/core';
 import { MemberService } from '../../../core/services/member-service';
 import { Member, MemberParams } from '../../../types/member';
 import { MemberCard } from '../member-card/member-card';
-import { PaginatedResult } from '../../../types/pagination';
+import { PaginatedResult, Pagination } from '../../../types/pagination';
 import { Paginator } from '../../../shared/paginator/paginator';
 import { FilterModal } from '../filter-modal/filter-modal';
+import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-member-list',
-  imports: [MemberCard, Paginator, FilterModal],
+  imports: [MemberCard, Paginator, FilterModal, FormsModule],
   templateUrl: './member-list.html',
   styleUrl: './member-list.css',
 })
@@ -19,6 +20,7 @@ export class MemberList {
 
   protected memberParams = new MemberParams();
   private updatedParams = new MemberParams();
+  private isSmartSearch = false;
 
   constructor() {
     const filters = localStorage.getItem('filters');
@@ -32,6 +34,7 @@ export class MemberList {
     this.loadMembers();
   }
 
+
   loadMembers() {
     this.memberService.getMembers(this.memberParams).subscribe({
       next: (result) => {
@@ -40,6 +43,24 @@ export class MemberList {
     });
   }
 
+  onSmartSearch(query: string) {
+    if (!query) return;
+    this.isSmartSearch = true;
+    this.memberService.smartSearch(query).subscribe({
+      next: (members) => {
+        const pagination: Pagination = {
+          currentPage: 1,
+          pageSize: members.length,
+          totalCount: members.length,
+          totalPages: 1,
+        };
+        this.paginatedMembers.set({
+          items: members,
+          metadata: pagination,
+        });
+      },
+    });
+  }
   onPageChange(event: { pageNumber: number; pageSize: number }) {
     this.memberParams.pageNumber = event.pageNumber;
     this.memberParams.pageSize = event.pageSize;
@@ -60,6 +81,7 @@ export class MemberList {
 
   resetFilters() {
     this.memberParams = new MemberParams();
+    this.isSmartSearch = false;
     this.updatedParams = new MemberParams();
     this.loadMembers();
   }
@@ -67,6 +89,8 @@ export class MemberList {
   get displayMessage(): string {
     const defaultParams = new MemberParams();
     const filters: string[] = [];
+
+    if (this.isSmartSearch) return 'Results from Smart Search';
 
     if (this.updatedParams.gender) {
       filters.push(this.updatedParams.gender + 's');

@@ -2,7 +2,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { inject, Injectable, signal } from '@angular/core';
 import { environment } from '../../environments/environment';
 import { EditableMember, Member, MemberParams, Photo } from '../../types/member';
-import { tap } from 'rxjs';
+import { Observable, tap } from 'rxjs';
 import { PaginatedResult } from '../../types/pagination';
 
 @Injectable({
@@ -14,6 +14,10 @@ export class MemberService {
   private baseUrl = environment.apiUrl;
   editMode = signal(false);
   member = signal<Member | null>(null);
+
+  smartSearch(query: string): Observable<Member[]> {
+    return this.http.get<Member[]>(`${this.baseUrl}aihelper/search`, { params: { query } });
+  }
 
   getMembers(memberParams: MemberParams) {
     let params = new HttpParams();
