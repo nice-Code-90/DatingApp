@@ -15,8 +15,16 @@ export class MemberService {
   editMode = signal(false);
   member = signal<Member | null>(null);
 
-  smartSearch(query: string): Observable<Member[]> {
-    return this.http.get<Member[]>(`${this.baseUrl}aihelper/search`, { params: { query } });
+  smartSearch(query: string, memberParams: MemberParams): Observable<Member[]> {
+    let params = new HttpParams().set('query', query);
+    params = params.append('minAge', memberParams.minAge);
+    params = params.append('maxAge', memberParams.maxAge);
+    params = params.append('orderBy', memberParams.orderBy);
+    if (memberParams.gender) {
+      params = params.append('gender', memberParams.gender);
+    }
+
+    return this.http.get<Member[]>(`${this.baseUrl}aihelper/search`, { params });
   }
 
   getMembers(memberParams: MemberParams) {

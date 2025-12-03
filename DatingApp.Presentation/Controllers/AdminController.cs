@@ -59,4 +59,12 @@ public class AdminController(
         adminService.StartSeedUsersProcess();
         return Accepted("User seeding process has been started in the background.");
     }
+
+    [Authorize(Policy = "RequireAdminRole")]
+    [HttpPost("reindex-qdrant")]
+    public async Task<ActionResult> ReindexQdrant()
+    {
+        _ = adminService.ReindexAllMembersAsync();
+        return Accepted("Qdrant re-indexing process has been started in the background.");
+    }
 }

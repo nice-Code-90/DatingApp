@@ -15,6 +15,7 @@ export class Admin {
   protected accountService = inject(AccountService);
   private adminService = inject(AdminService);
   isSeeding = signal(false);
+  isReindexing = signal(false);
 
   activeTab = 'photos';
 
@@ -38,6 +39,21 @@ export class Admin {
       },
       complete: () => {
         setTimeout(() => this.isSeeding.set(false), 5000);
+      }
+    });
+  }
+
+  reindexQdrant() {
+    this.isReindexing.set(true);
+    this.adminService.reindexQdrant().subscribe({
+      next: () => {},
+      error: (err) => {
+        alert('An error occurred: ' + err.error);
+        this.isReindexing.set(false);
+      },
+      complete: () => {
+        // Give feedback to the user that the process has started
+        setTimeout(() => this.isReindexing.set(false), 5000);
       }
     });
   }

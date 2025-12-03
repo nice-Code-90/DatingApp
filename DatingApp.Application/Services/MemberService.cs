@@ -6,7 +6,7 @@ using NetTopologySuite.Geometries;
 
 namespace DatingApp.Application.Services;
 
-public class MemberService(IUnitOfWork uow, IGeocodingService geocodingService, ICacheService cacheService, IPhotoService photoService, ICurrentUserService currentUserService) : IMemberService
+public class MemberService(IUnitOfWork uow, IGeocodingService geocodingService, ICacheService cacheService, IPhotoService photoService, ICurrentUserService currentUserService, IAiMatchmakingService aiMatchmakingService) : IMemberService
 {
     public async Task<Result<PhotoDto>> AddPhotoAsync(Stream photoStream, string fileName)
     {
@@ -105,7 +105,11 @@ public class MemberService(IUnitOfWork uow, IGeocodingService geocodingService, 
 
         uow.MemberRepository.Update(member);
         var result = await uow.Complete();
-        if (result) await cacheService.RemoveByPrefixAsync("members:");
+        if (result)
+        {
+            await cacheService.RemoveByPrefixAsync("members:");
+            await aiMatchmakingService.UpdateMemberProfileAsync(member);
+        }
 
         return result ? Result<object>.Success(new { }) : Result.Failure("Failed to update member");
     }

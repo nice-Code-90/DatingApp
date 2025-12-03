@@ -12,6 +12,11 @@ namespace DatingApp.Infrastructure.Repository;
 
 public class MemberRepository(AppDbContext context) : IMemberRepository
 {
+    public async Task<IEnumerable<Member>> GetAllMembersAsync()
+    {
+        return await context.Members.ToListAsync();
+    }
+
     public async Task<Member?> GetMemberByIdAsync(string id)
     {
         return await context.Members.FindAsync(id);

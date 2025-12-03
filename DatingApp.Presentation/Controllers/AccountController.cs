@@ -9,9 +9,10 @@ using Microsoft.EntityFrameworkCore;
 
 namespace DatingApp.Presentation.Controllers;
 
-public class AccountController(UserManager<AppUser> userManager, ITokenService tokenService, IGeocodingService geocodingService, ICacheService cacheService) : BaseApiController
+public class AccountController(UserManager<AppUser> userManager, ITokenService tokenService, IGeocodingService geocodingService, ICacheService cacheService, IAiMatchmakingService aiMatchmakingService
+) : BaseApiController
 {
-    [HttpPost("register")] 
+    [HttpPost("register")]
     public async Task<ActionResult<UserDto>> Register(RegisterDto registerDto)
     {
         if (await userManager.Users.AnyAsync(x => x.Email == registerDto.Email)) return BadRequest("Email is taken");
@@ -45,6 +46,8 @@ public class AccountController(UserManager<AppUser> userManager, ITokenService t
         }
         await userManager.AddToRoleAsync(user, "Member");
 
+        await aiMatchmakingService.UpdateMemberProfileAsync(user.Member);
+
         await cacheService.RemoveByPrefixAsync("members:");
 
         return await CreateUserDtoWithCookie(user);
@@ -55,12 +58,12 @@ public class AccountController(UserManager<AppUser> userManager, ITokenService t
     {
         var user = await userManager.FindByEmailAsync(loginDto.Email);
 
-        if (user == null) return Unauthorized("Invalid email address"); 
+        if (user == null) return Unauthorized("Invalid email address");
 
         var result = await userManager.CheckPasswordAsync(user, loginDto.Password);
 
 
-        if (!result) return Unauthorized("Invalid password"); 
+        if (!result) return Unauthorized("Invalid password");
 
         return await CreateUserDtoWithCookie(user);
     }
@@ -87,7 +90,7 @@ public class AccountController(UserManager<AppUser> userManager, ITokenService t
         await SetRefreshTokenCookie(user);
         return await user.ToDto(tokenService);
     }
-    
+
     private async Task SetRefreshTokenCookie(AppUser user)
     {
         var refreshToken = tokenService.GenerateRefreshToken();

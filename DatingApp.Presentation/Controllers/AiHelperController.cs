@@ -3,6 +3,7 @@ using DatingApp.Application.DTOs;
 using DatingApp.Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using DatingApp.Application.Helpers;
 using DatingApp.Application.Extensions;
 
 namespace DatingApp.Presentation.Controllers
@@ -30,11 +31,9 @@ namespace DatingApp.Presentation.Controllers
         }
 
         [HttpGet("search")]
-        public async Task<ActionResult<IEnumerable<MemberDto>>> SearchMembers([FromQuery] string query)
+        public async Task<ActionResult<IEnumerable<MemberDto>>> SearchMembers([FromQuery] AiSearchParams searchParams)
         {
-
-            var result = await _aiMatchmakingService.FindMatchingMembersAsync(query);
-
+            var result = await _aiMatchmakingService.FindMatchingMembersAsync(searchParams);
             return HandleResult(result);
         }
     }

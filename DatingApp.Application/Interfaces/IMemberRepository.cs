@@ -9,6 +9,7 @@ namespace DatingApp.Application.Interfaces;
 public interface IMemberRepository
 {
     void Update(Member member);
+    Task<IEnumerable<Member>> GetAllMembersAsync();
     Task<Member?> GetMemberByIdAsync(string id);
     Task<MemberDto?> GetMemberDtoByIdAsync(string id);
     Task<PaginatedResult<MemberDto>> GetMembersWithFiltersAsync(MemberParams memberParams, Point? currentUserLocation);

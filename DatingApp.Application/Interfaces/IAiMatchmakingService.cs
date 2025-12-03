@@ -8,8 +8,8 @@ namespace DatingApp.Application.Interfaces
     {
         Task InitCollectionAsync();
         Task UpdateMemberProfileAsync(Member member);
-        Task<IEnumerable<string>> FindMatchesIdsAsync(string searchQuery);
-        Task<Result<IEnumerable<MemberDto>>> FindMatchingMembersAsync(string searchQuery);
+        Task<IEnumerable<string>> FindMatchesIdsAsync(AiSearchParams searchParams);
+        Task<Result<IEnumerable<MemberDto>>> FindMatchingMembersAsync(AiSearchParams searchParams);
 
     }
 }

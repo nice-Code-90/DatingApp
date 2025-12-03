@@ -58,30 +58,63 @@ namespace DatingApp.Infrastructure.Services
 
             var embedding = await _embeddingService.GenerateVectorAsync(textDescription);
 
-            var pointId = Guid.NewGuid();
-
             var point = new PointStruct
             {
-                Id = pointId,
+                Id = Guid.Parse(member.Id),
                 Vectors = embedding.ToArray(),
                 Payload = {
                     ["SqlId"] = member.Id,
                     ["City"] = member.City,
                     ["Gender"] = member.Gender,
-                    ["DisplayName"] = member.DisplayName
+                    ["DisplayName"] = member.DisplayName,
+                    ["Age"] = member.DateOfBirth.CalculateAge()
                 }
             };
 
             await _qdrantClient.UpsertAsync(CollectionName, new[] { point });
         }
 
-        public async Task<IEnumerable<string>> FindMatchesIdsAsync(string searchQuery)
+        public async Task<IEnumerable<string>> FindMatchesIdsAsync(AiSearchParams searchParams)
         {
-            var queryVector = await _embeddingService.GenerateVectorAsync(searchQuery);
+            if (string.IsNullOrEmpty(searchParams.Query))
+            {
+                return Enumerable.Empty<string>();
+            }
+
+            var queryVector = await _embeddingService.GenerateVectorAsync(searchParams.Query);
+
+            var filterConditions = new List<Condition>();
+
+            if (!string.IsNullOrEmpty(searchParams.Gender))
+            {
+                filterConditions.Add(new Condition
+                {
+                    Field = new FieldCondition { Key = "Gender", Match = new Match { Keyword = searchParams.Gender } }
+                });
+            }
+
+            var ageRange = new Qdrant.Client.Grpc.Range();
+            bool isAgeRangeSet = false;
+            if (searchParams.MinAge > 18)
+            {
+                ageRange.Gte = searchParams.MinAge;
+                isAgeRangeSet = true;
+            }
+            if (searchParams.MaxAge < 100)
+            {
+                ageRange.Lte = searchParams.MaxAge;
+                isAgeRangeSet = true;
+            }
+
+            if (isAgeRangeSet)
+            {
+                filterConditions.Add(new Condition { Field = new FieldCondition { Key = "Age", Range = ageRange } });
+            }
 
             var searchResult = await _qdrantClient.SearchAsync(
                 CollectionName,
                 queryVector.ToArray(),
+                filter: new Filter { Must = { filterConditions } },
                 limit: 10,
                 scoreThreshold: 0.5f
             );
@@ -97,11 +130,11 @@ namespace DatingApp.Infrastructure.Services
             return ids;
         }
 
-        public async Task<Result<IEnumerable<MemberDto>>> FindMatchingMembersAsync(string searchQuery)
+        public async Task<Result<IEnumerable<MemberDto>>> FindMatchingMembersAsync(AiSearchParams searchParams)
         {
-            if (string.IsNullOrEmpty(searchQuery)) return Result<IEnumerable<MemberDto>>.Failure("Search query cannot be empty");
+            if (string.IsNullOrEmpty(searchParams.Query)) return Result<IEnumerable<MemberDto>>.Failure("Search query cannot be empty");
 
-            var matchIds = await FindMatchesIdsAsync(searchQuery);
+            var matchIds = await FindMatchesIdsAsync(searchParams);
 
             if (!matchIds.Any())
             {

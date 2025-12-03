@@ -3,6 +3,8 @@ using DatingApp.Application.Interfaces;
 using DatingApp.Application.Helpers;
 using DatingApp.Domain.Entities;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace DatingApp.Application.Services;
 
@@ -12,7 +14,9 @@ public class AdminService(
     IPhotoService photoService,
     ICacheService cacheService,
     IDataSeedingService dataSeedingService,
-    UserManager<AppUser> userManager) : IAdminService
+    UserManager<AppUser> userManager,
+    IServiceProvider serviceProvider,
+    ILogger<AdminService> logger) : IAdminService
 {
     private const string UsersWithRolesCacheKey = "users-with-roles";
 
@@ -92,5 +96,31 @@ public class AdminService(
 
         uow.PhotoRepository.RemovePhoto(photo);
         return await uow.Complete() ? Result<object>.Success(new { }) : Result.Failure("Failed to reject photo");
+    }
+
+    public async Task ReindexAllMembersAsync()
+    {
+        logger.LogInformation("Starting Qdrant re-indexing process...");
+        try
+        {
+            using (var scope = serviceProvider.CreateScope())
+            {
+                var scopedUow = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
+                var scopedAiService = scope.ServiceProvider.GetRequiredService<IAiMatchmakingService>();
+
+                var allMembers = await scopedUow.MemberRepository.GetAllMembersAsync();
+                logger.LogInformation("Found {Count} members to re-index.", allMembers.Count());
+
+                foreach (var member in allMembers)
+                {
+                    await scopedAiService.UpdateMemberProfileAsync(member);
+                }
+                logger.LogInformation("Successfully re-indexed all members in Qdrant.");
+            }
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "An error occurred during Qdrant re-indexing.");
+        }
     }
 }

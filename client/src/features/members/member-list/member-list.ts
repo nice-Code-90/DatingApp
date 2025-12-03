@@ -46,7 +46,7 @@ export class MemberList {
   onSmartSearch(query: string) {
     if (!query) return;
     this.isSmartSearch = true;
-    this.memberService.smartSearch(query).subscribe({
+    this.memberService.smartSearch(query, this.memberParams).subscribe({
       next: (members) => {
         const pagination: Pagination = {
           currentPage: 1,

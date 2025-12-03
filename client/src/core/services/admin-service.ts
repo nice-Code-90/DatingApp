@@ -38,4 +38,8 @@ export class AdminService {
   seedUsers() {
     return this.http.post(this.baseUrl + 'admin/seed-users', {});
   }
+
+  reindexQdrant() {
+    return this.http.post(this.baseUrl + 'admin/reindex-qdrant', {});
+  }
 }

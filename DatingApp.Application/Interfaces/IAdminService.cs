@@ -10,5 +10,8 @@ public interface IAdminService
     Task<Result<object>> ApprovePhotoAsync(int photoId);
     Task<Result<object>> RejectPhotoAsync(int photoId);
     Task<IEnumerable<PhotoForApprovalDto>> GetPhotosForModerationAsync();
+
+    Task ReindexAllMembersAsync();
+
     void StartSeedUsersProcess();
 }

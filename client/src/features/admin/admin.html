@@ -28,5 +28,11 @@
     }
     {{ isSeeding() ? 'Seeding started...' : 'Upload Demo Users' }}
   </button>
+  <button class="btn btn-secondary" (click)="reindexQdrant()" [disabled]="isReindexing()">
+    @if (isReindexing()) {
+    <span class="loading loading-spinner"></span>
+    }
+    {{ isReindexing() ? 'Re-indexing started...' : 'Re-index Qdrant' }}
+  </button>
 </div>
 }
