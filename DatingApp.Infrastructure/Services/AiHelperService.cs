@@ -40,24 +40,26 @@ namespace DatingApp.Infrastructure.Services
 
             var prompt = """
                 You are a helpful dating assistant. Your task is to help a user continue a conversation.
-                The user you are helping is '{{$currentUser.DisplayName}}'.
-                They are talking to '{{$recipient.DisplayName}}'. Here is some information about '{{$recipient.DisplayName}}':
-                - Description: {{$recipient.Description}}
+                The user you are helping is '{{$currentUserDisplayName}}'.
+                They are talking to '{{$recipientDisplayName}}'. Here is some information about '{{$recipientDisplayName}}':
+                - Description: {{$recipientDescription}}
 
                 Here is the recent conversation history:
                 {{$conversationHistory}}
 
-                Based on the information above, suggest a short, engaging, 2-3 sentence message for '{{$currentUser.DisplayName}}' to send to continue the conversation. Be friendly and creative. Do not include a greeting like 'Hi' or 'Hello'.
+                Based on the information above, suggest a short, engaging, 2-3 sentence message for '{{$currentUserDisplayName}}' to send to continue the conversation. Be friendly and creative. Do not include a greeting like 'Hi' or 'Hello'.
             """;
 
             try
             {
-                var result = await _kernel.InvokePromptAsync(prompt, new()
+                var arguments = new KernelArguments
                 {
-                    { "currentUser", currentUser },
-                    { "recipient", recipient },
+                    { "currentUserDisplayName", currentUser.DisplayName },
+                    { "recipientDisplayName", recipient.DisplayName },
+                    { "recipientDescription", recipient.Description ?? "No description provided." },
                     { "conversationHistory", promptBuilder.ToString() }
-                });
+                };
+                var result = await _kernel.InvokePromptAsync(prompt, arguments);
 
                 var suggestion = result.GetValue<string>();
                 return Result<SuggestionDto>.Success(new SuggestionDto { Suggestion = suggestion });

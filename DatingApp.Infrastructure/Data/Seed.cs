@@ -35,7 +35,6 @@ public class Seed
         IGeocodingService geocodingService,
         IAiMatchmakingService aiMatchmakingService)
     {
-        // Only seed if there are no non-admin users
         if (await userManager.Users.AnyAsync(u => u.UserName != "admin@test.com")) return;
 
         try
@@ -45,7 +44,7 @@ public class Seed
         catch (Exception ex)
         {
             logger.LogError(ex, "[AI] Init Failed");
-            return; // Stop seeding if collection initialization fails
+            return;
         }
 
         var assembly = Assembly.GetExecutingAssembly();
@@ -77,7 +76,6 @@ public class Seed
         {
             var user = new AppUser
             {
-                Id = member.Id,
                 Email = member.Email,
                 UserName = member.Email,
                 DisplayName = member.DisplayName,
@@ -85,7 +83,6 @@ public class Seed
 
                 Member = new Member
                 {
-                    Id = member.Id,
                     DisplayName = member.DisplayName,
                     Description = member.Description,
                     DateOfBirth = member.DateOfBirth,
@@ -107,7 +104,6 @@ public class Seed
             user.Member.Photos.Add(new Photo
             {
                 Url = member.ImageUrl!,
-                MemberId = member.Id,
                 IsApproved = true
             });
 

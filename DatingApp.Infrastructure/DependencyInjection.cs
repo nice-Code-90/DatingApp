@@ -6,6 +6,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.SemanticKernel.Connectors.Google;
 using Microsoft.Extensions.AI;
+using Microsoft.SemanticKernel;
 
 namespace DatingApp.Infrastructure;
 
@@ -27,7 +28,10 @@ public static class DependencyInjection
         services.AddScoped<IDbInitializer, DbInitializer>();
         services.AddScoped<IDataSeedingService, DataSeedingService>();
 
-        services.AddKernel();
+        services.AddKernel().AddGoogleAIGeminiChatCompletion(
+            modelId: "gemini-2.5-pro",
+            apiKey: configuration["GeminiSettings:ApiKey"]
+        );
 
         services.AddSingleton<IEmbeddingGenerator<string, Embedding<float>>>(sp =>
         {
