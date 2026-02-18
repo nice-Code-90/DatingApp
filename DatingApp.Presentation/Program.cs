@@ -9,12 +9,12 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using DatingApp.Presentation.Helpers;
-using Microsoft.OpenApi.Models;
 using DatingApp.Application;
 using DatingApp.Infrastructure;
-using DatingApp.Application.Extensions;
 using DatingApp.Application.Helpers;
 using DatingApp.Presentation.Services;
+
+using Microsoft.OpenApi;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -26,8 +26,7 @@ builder.Services.AddControllers().AddJsonOptions(options =>
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
-
-
+    
     options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         In = ParameterLocation.Header,
@@ -38,22 +37,18 @@ builder.Services.AddSwaggerGen(options =>
         BearerFormat = "JWT"
     });
 
-    options.AddSecurityRequirement(new OpenApiSecurityRequirement
-    {
-        {
-            new OpenApiSecurityScheme
-            {
-                Reference = new OpenApiReference
-                {
-                    Type = ReferenceType.SecurityScheme,
-                    Id = "Bearer"
-                }
-            },
-            Array.Empty<string>()
-        }
-    });
-});
+    
+    var schemeReference = new OpenApiSecuritySchemeReference("Bearer");
 
+    
+    var securityRequirement = new OpenApiSecurityRequirement();
+
+    
+    securityRequirement.Add(schemeReference, new List<string>());
+
+    
+    options.AddSecurityRequirement(_ => securityRequirement);
+});
 builder.Services.AddDbContext<AppDbContext>(opt =>
 {
     opt.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"),

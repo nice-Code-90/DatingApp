@@ -14,6 +14,10 @@ public static class DependencyInjection
 {
     public static IServiceCollection AddInfrastructureServices(this IServiceCollection services, IConfiguration configuration)
     {
+        var geminiApiKey = configuration["GeminiSettings:ApiKey"]
+        ?? throw new InvalidOperationException("Gemini API Key is missing from configuration.");
+
+
         services.AddScoped<ITokenService, TokenService>();
         services.AddScoped<IPhotoService, PhotoService>();
         services.AddScoped<IMemberRepository, MemberRepository>();
@@ -30,7 +34,7 @@ public static class DependencyInjection
 
         services.AddKernel().AddGoogleAIGeminiChatCompletion(
             modelId: "gemini-2.5-pro",
-            apiKey: configuration["GeminiSettings:ApiKey"]
+            apiKey: geminiApiKey
         );
 
         services.AddSingleton<IEmbeddingGenerator<string, Embedding<float>>>(sp =>
@@ -39,7 +43,7 @@ public static class DependencyInjection
             if (string.IsNullOrEmpty(apiKey)) throw new Exception("Gemini API Key is missing");
             return new GoogleAIEmbeddingGenerator(
                 modelId: "text-embedding-004",
-                apiKey: apiKey,
+                apiKey: geminiApiKey,
                 apiVersion: GoogleAIVersion.V1_Beta
             );
         });
