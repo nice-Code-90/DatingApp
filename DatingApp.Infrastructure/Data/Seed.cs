@@ -117,7 +117,7 @@ public class Seed
                 {
                     logger.LogInformation("[AI] Syncing profile for: {DisplayName}...", user.DisplayName);
 
-                    //vector generation by Gemini
+                    
                     await aiMatchmakingService.UpdateMemberProfileAsync(user.Member);
 
                     logger.LogInformation("[AI] -> Success!");

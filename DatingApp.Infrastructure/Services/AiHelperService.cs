@@ -3,20 +3,21 @@ using DatingApp.Application.DTOs;
 using DatingApp.Application.Interfaces;
 using DatingApp.Application.Helpers;
 using Microsoft.Extensions.Logging;
-using Microsoft.SemanticKernel;
+using DatingApp.Infrastructure.Extensions;
+using Microsoft.Extensions.AI;
 
 namespace DatingApp.Infrastructure.Services
 {
     public class AiHelperService : IAiHelperService
     {
         private readonly IUnitOfWork _unitOfWork;
-        private readonly Kernel _kernel;
+        private readonly IChatClient _chatClient;
         private readonly ILogger<AiHelperService> _logger;
 
-        public AiHelperService(IUnitOfWork unitOfWork, Kernel kernel, ILogger<AiHelperService> logger)
+        public AiHelperService(IUnitOfWork unitOfWork, IChatClient chatClient, ILogger<AiHelperService> logger)
         {
             _unitOfWork = unitOfWork;
-            _kernel = kernel;
+            _chatClient = chatClient;
             _logger = logger;
         }
 
@@ -32,41 +33,35 @@ namespace DatingApp.Infrastructure.Services
                 return Result<SuggestionDto>.Failure("Error: User not found.");
             }
 
-            var promptBuilder = new StringBuilder();
+            var conversationHistory = new StringBuilder();
             foreach (var message in messageThread.OrderBy(m => m.MessageSent).TakeLast(10))
             {
-                promptBuilder.AppendLine($"- {message.SenderDisplayName}: {message.Content}");
+                conversationHistory.AppendLine($"- {message.SenderDisplayName}: {message.Content}");
             }
 
-            var prompt = """
+            var prompt = $"""
                 You are a helpful dating assistant. Your task is to help a user continue a conversation.
-                The user you are helping is '{{$currentUserDisplayName}}'.
-                They are talking to '{{$recipientDisplayName}}'. Here is some information about '{{$recipientDisplayName}}':
-                - Description: {{$recipientDescription}}
+                The user you are helping is '{currentUser.DisplayName}'.
+                They are talking to '{recipient.DisplayName}'. Here is some information about '{recipient.DisplayName}':
+                - Description: {recipient.Description ?? "No description provided."}
 
                 Here is the recent conversation history:
-                {{$conversationHistory}}
+                {conversationHistory}
 
-                Based on the information above, suggest a short, engaging, 2-3 sentence message for '{{$currentUserDisplayName}}' to send to continue the conversation. Be friendly and creative. Do not include a greeting like 'Hi' or 'Hello'.
+                Based on the information above, suggest a short, engaging, 2-3 sentence message for '{currentUser.DisplayName}' to send to continue the conversation. Be friendly and creative. Do not include a greeting like 'Hi' or 'Hello'.
             """;
 
             try
             {
-                var arguments = new KernelArguments
-                {
-                    { "currentUserDisplayName", currentUser.DisplayName },
-                    { "recipientDisplayName", recipient.DisplayName },
-                    { "recipientDescription", recipient.Description ?? "No description provided." },
-                    { "conversationHistory", promptBuilder.ToString() }
-                };
-                var result = await _kernel.InvokePromptAsync(prompt, arguments);
-
-                var suggestion = result.GetValue<string>();
+                var agent = _chatClient.CreateCerebrasAgent();
+                var response = await agent.RunAsync(prompt);
+                var suggestion = response.GetCleanContent();
+                
                 return Result<SuggestionDto>.Success(new SuggestionDto { Suggestion = suggestion });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error calling Gemini API for chat suggestion.");
+                _logger.LogError(ex, "Error calling Cerebras API for chat suggestion.");
                 return Result<SuggestionDto>.Failure("Sorry, I couldn't come up with a suggestion right now due to an internal error.");
             }
         }

@@ -4,19 +4,21 @@ using DatingApp.Infrastructure.Repository;
 using DatingApp.Infrastructure.Services;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.SemanticKernel.Connectors.Google;
 using Microsoft.Extensions.AI;
-using Microsoft.SemanticKernel;
+using OpenAI;
+using System.ClientModel;
+using OpenAI.Chat;
+using DatingApp.Infrastructure.AI;
+using Microsoft.AspNetCore.Hosting;
 
 namespace DatingApp.Infrastructure;
 
 public static class DependencyInjection
 {
-    public static IServiceCollection AddInfrastructureServices(this IServiceCollection services, IConfiguration configuration)
+    public static IServiceCollection AddInfrastructureServices(this IServiceCollection services, IConfiguration configuration, IWebHostEnvironment environment)
     {
-        var geminiApiKey = configuration["GeminiSettings:ApiKey"]
-        ?? throw new InvalidOperationException("Gemini API Key is missing from configuration.");
-
+        var cerebrasApiKey = configuration["CerebrasSettings:ApiKey"]
+        ?? throw new InvalidOperationException("Cerebras API Key is missing from configuration.");
 
         services.AddScoped<ITokenService, TokenService>();
         services.AddScoped<IPhotoService, PhotoService>();
@@ -32,20 +34,18 @@ public static class DependencyInjection
         services.AddScoped<IDbInitializer, DbInitializer>();
         services.AddScoped<IDataSeedingService, DataSeedingService>();
 
-        services.AddKernel().AddGoogleAIGeminiChatCompletion(
-            modelId: "gemini-2.5-pro",
-            apiKey: geminiApiKey
-        );
+        services.AddSingleton<IChatClient>(sp =>
+            new OpenAIClient(
+                new ApiKeyCredential(cerebrasApiKey),
+                new OpenAIClientOptions { Endpoint = new Uri("https://api.cerebras.ai/v1") }
+            ).GetChatClient("gpt-oss-120b").AsIChatClient());
 
         services.AddSingleton<IEmbeddingGenerator<string, Embedding<float>>>(sp =>
         {
-            var apiKey = configuration["GeminiSettings:ApiKey"];
-            if (string.IsNullOrEmpty(apiKey)) throw new Exception("Gemini API Key is missing");
-            return new GoogleAIEmbeddingGenerator(
-                modelId: "text-embedding-004",
-                apiKey: geminiApiKey,
-                apiVersion: GoogleAIVersion.V1_Beta
-            );
+            var baseDir = AppDomain.CurrentDomain.BaseDirectory;
+            var modelPath = Path.Combine(baseDir, "Data", "model.onnx");
+            var vocabPath = Path.Combine(baseDir, "Data", "vocab.txt");
+            return new OnnxLocalEmbeddingGenerator(modelPath, vocabPath);
         });
 
         services.AddScoped<IAiMatchmakingService, AiMatchmakingService>();

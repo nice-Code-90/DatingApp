@@ -1,85 +1,98 @@
 # DatingApp - AI-Powered Smart Dating Platform
 
-This project is a feature-rich, full-stack web application built with a **.NET 9** backend and an **Angular 20** frontend.
+This project is a feature-rich, full-stack web application built with a **.NET 10** backend and an **Angular 21** frontend.
 
-It goes beyond standard CRUD applications by implementing a **RAG (Retrieval-Augmented Generation)** architecture. It uses a Vector Database to enable semantic matchmaking, allowing users to find matches based on meaning and context rather than just keyword matching.
+It goes beyond standard CRUD applications by implementing a **Hybrid RAG (Retrieval-Augmented Generation)** architecture. It uses a Vector Database and local AI models to enable semantic matchmaking, allowing users to find matches based on meaning and context rather than just keyword matching.
 
 **Live Demo:** [https://dating-2025.azurewebsites.net/](https://dating-2025.azurewebsites.net/)
-*(Note: The free-tier Azure App Service may experience a cold start, leading to a slower initial load time.)*
+_(Note: The free-tier Azure App Service may experience a cold start.)_
 
 ## Application Preview
 
-![Member listing page](demo/filtering.gif)
+![Member listing with filtering options.](demo/filtering.gif)
 _Member listing with filtering options._
 
-![Home page](demo/home.gif)
-_Home page_
+## 🧠 AI & Hybrid RAG Features (Refactored)
 
-## 🧠 AI & RAG Features (New)
+This application implements a high-performance **AI Engineer stack** within a Clean Architecture:
 
-This application implements a modern **AI Engineer stack** within a Clean Architecture:
-
-* **Semantic Matchmaking (RAG):**
-    * Users can search for matches using natural language (e.g., *"Someone who loves hiking and outdoor adventures in Budapest"*).
-    * **How it works:** User profiles are vectorized (converted to mathematical embeddings) using **Google Gemini** models and stored in a **Qdrant** Vector Database.
-    * The system performs a cosine similarity search to find profiles that match the *intent* and *meaning* of the search query, not just exact keywords.
-* **AI-Powered Chat Suggestions:**
-    * Integrates **Google Gemini** to analyze conversation context and suggest ice-breakers or replies to keep the conversation flowing.
-* **Hybrid Data Handling:**
-    * Synchronizes structured data (SQL Server) with unstructured semantic data (Qdrant) automatically using database seeders and domain services.
+- **Local Semantic Matchmaking:**
+  - Users can search for matches using natural language.
+  - **How it works:** User profiles are vectorized locally on the server using the **ONNX Runtime** and the **all-MiniLM-L6-v2** model (384 dimensions). This eliminates privacy concerns and API costs for embedding generation.
+  - Vectors are stored in a **Qdrant** Vector Database.
+  - The system performs a cosine similarity search to find profiles that match the _intent_ of the query.
+- **Cerebras-Powered Chat Intelligence:**
+  - Integrates **Cerebras Inference** (using `gpt-oss-120b`) for near-instant AI responses.
+  - Uses **Chain-of-Thought (CoT)** reasoning to analyze conversation context and suggest high-quality ice-breakers.
+- **High-Performance Sync:**
+  - Synchronizes structured SQL Server data with Qdrant automatically during the database seeding process.
 
 ## Key Features
 
-* **User Authentication & Profile Management:** Secure user registration and login using JWT (JSON Web Token) authentication with ASP.NET Core Identity.
-* **Real-time Presence & Messaging:** Built with **SignalR** for live online status updates and instant private messaging.
-* **Geolocation-based Filtering:** Filters users by physical distance using **NetTopologySuite** (spatial SQL queries) and **OpenCage Geocoding API**.
-* **Photo Management:** Cloud-based image storage and transformation using **Cloudinary**.
-* **Admin & Moderation:** Dedicated interface for managing roles and approving/rejecting user photos.
-* **Advanced Filtering:** Sort and filter by age, gender, created date, and last active timestamp.
+- **User Authentication:** Secure registration/login using JWT and ASP.NET Core Identity (with deterministic ConcurrencyStamps for stable migrations).
+- **Real-time Presence:** Built with **SignalR** for live status and instant messaging.
+- **Geolocation:** Filtering by physical distance using **NetTopologySuite** and **OpenCage API**.
+- **Photo Management:** Cloud-based image storage and transformation using **Cloudinary**.
+- **Advanced Filtering:** Sort by age, gender, and last active status.
 
 ## Technology Stack
 
-The solution follows **Clean Architecture** principles, enforcing a strict separation of concerns (Domain, Application, Infrastructure, Presentation) and using the latest .NET standards.
+### Backend (.NET 10)
 
-### Backend (.NET 9)
-
-* **Framework:** ASP.NET Core Web API
-* **AI & Vectors:**
-    * **Microsoft.Extensions.AI:** The latest standard for AI integration in .NET.
-    * **Vector Database:** **Qdrant** (running in Docker/Cloud) for storing high-dimensional embeddings.
-    * **LLM Integration:** Google Gemini API (for embeddings and chat generation).
-* **Database:** SQL Server (with Entity Framework Core).
-* **Spatial Data:** NetTopologySuite.
-* **Real-time:** SignalR.
-* **Testing/Architecture:** Dependency Injection, Repository Pattern, Unit of Work.
+- **Framework:** ASP.NET Core 10.0 Web API.
+- **AI & Vectors:**
+  - **Microsoft.Extensions.AI:** Standardized AI integration.
+  - **ONNX Runtime:** Local embedding generation (`model.onnx`).
+  - **Cerebras SDK:** High-speed LLM inference (OpenAI-compatible).
+  - **Qdrant Client:** Vector search via gRPC (port 6334).
+- **Database:** SQL Server (EF Core 10.0).
 
 ### Frontend (Angular 21)
 
-* **Framework:** Angular (latest version).
-* **State Management:** Angular Signals.
-* **Styling:** Tailwind CSS + DaisyUI.
-* **Communication:** HTTP Client & SignalR Client.
+- **Framework:** Angular 21 with Signals for state management.
+- **Styling:** Tailwind CSS + DaisyUI.
 
 ## Local Development Setup
 
-To run the AI features locally, you need a running Qdrant instance.
+1.  **Infrastructure (Docker)**
+    Ensure Docker Desktop is running (WSL 2 recommended). Start the vector database:
 
-1.  **Start Infrastructure:**
     ```bash
-    docker compose up -d
+    docker compose up -d qdrant
     ```
-    This starts the SQL Server and Qdrant Vector DB containers.
 
-2.  **Configuration:**
-    Ensure your `appsettings.json` contains valid API keys for Cloudinary, OpenCage, and Google Gemini.
+    The dashboard is available at http://localhost:6333.
 
-3.  **Run Backend:**
+2.  **Configuration**
+    Update `appsettings.Development.json` in the Presentation project:
+
+    ```json
+    {
+      "ConnectionStrings": {
+        "DefaultConnection": "Server=YOUR_SERVER;Database=datingdb;Trusted_Connection=True;"
+      },
+      "Qdrant": {
+        "Url": "http://localhost:6334"
+      },
+      "CerebrasSettings": {
+        "ApiKey": "your_api_key"
+      }
+    }
+    ```
+
+3.  **Local AI Models**
+    Place `model.onnx` and `vocab.txt` into the `DatingApp.Infrastructure/Data/` folder. Ensure they are set as "Copy to Output Directory" in the `.csproj` file.
+
+4.  **Run Application**
+
     ```bash
-    dotnet watch run --project DatingApp.Presentation
+    # Build Frontend
+    cd DatingApp.Client && npm run build
+
+    # Run Backend
+    cd ../DatingApp.Presentation && dotnet watch run
     ```
-    *On startup, the Database Seeder will automatically vectorize seed users and upload them to Qdrant.*
+
 ## Project Goal
 
-The primary goal of this project is to serve as a practical case study on integrating modern AI technologies into a robust, enterprise-grade .NET application. It demonstrates how to enhance a traditional full-stack application with cutting-edge features like Retrieval-Augmented Generation (RAG), vector search, and LLM-driven interactions, all while strictly adhering to Clean Architecture principles.
-
-The project explores pragmatic solutions for bridging the gap between structured relational data and unstructured semantic data, showcasing a modern approach to building intelligent, feature-rich applications.
+This project serves as a case study on bridging the gap between traditional enterprise applications and modern AI workloads. It demonstrates how to use local SLMs (Small Language Models) for embeddings and lightning-fast LLM providers like Cerebras to create a seamless, intelligent user experience.

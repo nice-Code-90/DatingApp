@@ -18,7 +18,7 @@ namespace DatingApp.Infrastructure.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "9.0.9")
+                .HasAnnotation("ProductVersion", "10.0.3")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -287,18 +287,21 @@ namespace DatingApp.Infrastructure.Migrations
                         new
                         {
                             Id = "member-id",
+                            ConcurrencyStamp = "8b1ce792-374e-4adf-8677-2283378d510e",
                             Name = "Member",
                             NormalizedName = "MEMBER"
                         },
                         new
                         {
                             Id = "moderator-id",
+                            ConcurrencyStamp = "c11e66bd-fb43-411a-9508-32417bd4333a",
                             Name = "Moderator",
                             NormalizedName = "MODERATOR"
                         },
                         new
                         {
                             Id = "admin-id",
+                            ConcurrencyStamp = "0ed2535d-473b-485d-94cd-167122d63f2a",
                             Name = "Admin",
                             NormalizedName = "ADMIN"
                         });

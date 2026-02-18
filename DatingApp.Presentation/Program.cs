@@ -61,7 +61,7 @@ builder.Services.AddHttpClient();
 
 builder.Services.Configure<CloudinarySettings>(builder.Configuration.GetSection("CloudinarySettings"));
 builder.Services.Configure<OpenCageSettings>(builder.Configuration.GetSection("OpenCageSettings"));
-builder.Services.Configure<GeminiSettings>(builder.Configuration.GetSection("GeminiSettings"));
+builder.Services.Configure<CerebrasSettings>(builder.Configuration.GetSection("CerebrasSettings"));
 builder.Services.AddSignalR();
 builder.Services.AddSingleton<PresenceTracker>();
 builder.Services.AddIdentityCore<AppUser>(opt =>
@@ -107,7 +107,8 @@ builder.Services.AddAuthorizationBuilder()
     .AddPolicy("ModeratePhotoRole", policy => policy.RequireRole("Admin", "Moderator"));
 
 builder.Services.AddApplicationServices();
-builder.Services.AddInfrastructureServices(builder.Configuration);
+var env = builder.Environment;
+builder.Services.AddInfrastructureServices(builder.Configuration, env);
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 builder.Services.AddMemoryCache();

@@ -8,6 +8,7 @@ using Qdrant.Client;
 using Microsoft.Extensions.Logging;
 using Qdrant.Client.Grpc;
 using DatingApp.Application.Helpers;
+using System.Linq;
 
 namespace DatingApp.Infrastructure.Services
 {
@@ -19,7 +20,7 @@ namespace DatingApp.Infrastructure.Services
         private readonly ILogger<AiMatchmakingService> _logger;
 
         private const string CollectionName = "members_index";
-        private const ulong VectorSize = 768;
+        private const ulong VectorSize = 384;
 
         public AiMatchmakingService(
             IConfiguration config,
@@ -56,7 +57,8 @@ namespace DatingApp.Infrastructure.Services
                                   $"City: {member.City}, {member.Country}. " +
                                   $"Description: {member.Description ?? "No description provided."}";
 
-            var embedding = await _embeddingService.GenerateVectorAsync(textDescription);
+            var embeddings = await _embeddingService.GenerateAsync(new[] { textDescription });
+            var embedding = embeddings.First().Vector;
 
             var point = new PointStruct
             {
@@ -81,7 +83,8 @@ namespace DatingApp.Infrastructure.Services
                 return Enumerable.Empty<string>();
             }
 
-            var queryVector = await _embeddingService.GenerateVectorAsync(searchParams.Query);
+            var embeddings = await _embeddingService.GenerateAsync(new[] { searchParams.Query });
+            var queryVector = embeddings.First().Vector;
 
             var filterConditions = new List<Condition>();
 

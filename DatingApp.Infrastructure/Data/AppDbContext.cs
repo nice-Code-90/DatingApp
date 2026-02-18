@@ -24,11 +24,29 @@ public class AppDbContext(DbContextOptions options) : IdentityDbContext<AppUser>
         modelBuilder.Entity<Photo>().HasQueryFilter(x => x.IsApproved);
 
         modelBuilder.Entity<IdentityRole>()
-            .HasData(
-                new IdentityRole { Id = "member-id", Name = "Member", NormalizedName = "MEMBER" },
-                new IdentityRole { Id = "moderator-id", Name = "Moderator", NormalizedName = "MODERATOR" },
-                new IdentityRole { Id = "admin-id", Name = "Admin", NormalizedName = "ADMIN" }
-            );
+    .HasData(
+        new IdentityRole
+        {
+            Id = "member-id",
+            Name = "Member",
+            NormalizedName = "MEMBER",
+            ConcurrencyStamp = "8b1ce792-374e-4adf-8677-2283378d510e" 
+        },
+        new IdentityRole
+        {
+            Id = "moderator-id",
+            Name = "Moderator",
+            NormalizedName = "MODERATOR",
+            ConcurrencyStamp = "c11e66bd-fb43-411a-9508-32417bd4333a" 
+        },
+        new IdentityRole
+        {
+            Id = "admin-id",
+            Name = "Admin",
+            NormalizedName = "ADMIN",
+            ConcurrencyStamp = "0ed2535d-473b-485d-94cd-167122d63f2a" 
+        }
+    );
 
         modelBuilder.Entity<Message>()
             .HasOne(x => x.Recipient)
