@@ -17,7 +17,7 @@ public class HuggingFaceEmbeddingGenerator : IEmbeddingGenerator<string, Embeddi
         _modelId = config["HuggingFace:ModelId"] ?? "sentence-transformers/all-mpnet-base-v2";
         _apiKey = config["HuggingFace:ApiKey"] ?? throw new Exception("Hugging Face API Key is missing!");
 
-        _httpClient.BaseAddress = new Uri("https://api-inference.huggingface.co/");
+        _httpClient.BaseAddress = new Uri("https://router.huggingface.co/");
         _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _apiKey);
     }
 
