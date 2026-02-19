@@ -29,13 +29,14 @@ public class Seed
             await userManager.AddToRolesAsync(admin, ["Admin", "Moderator"]);
         }
     }
+
     public static async Task SeedUsers(
         ILogger logger,
         UserManager<AppUser> userManager,
         IGeocodingService geocodingService,
         IAiMatchmakingService aiMatchmakingService)
     {
-        if (await userManager.Users.AnyAsync(u => u.UserName != "admin@test.com")) return;
+        
 
         try
         {
@@ -65,15 +66,17 @@ public class Seed
         }
 
         var members = JsonSerializer.Deserialize<List<SeedUserDto>>(memberData);
-
-        if (members == null)
-        {
-            logger.LogWarning("No members in seed data");
-            return;
-        }
+        if (members == null) return;
 
         foreach (var member in members)
         {
+            
+            if (await userManager.Users.AnyAsync(u => u.Email == member.Email))
+            {
+                logger.LogInformation("[SEED] User {Email} already exists, skipping...", member.Email);
+                continue;
+            }
+
             var user = new AppUser
             {
                 Email = member.Email,
@@ -116,10 +119,7 @@ public class Seed
                 try
                 {
                     logger.LogInformation("[AI] Syncing profile for: {DisplayName}...", user.DisplayName);
-
-                    
                     await aiMatchmakingService.UpdateMemberProfileAsync(user.Member);
-
                     logger.LogInformation("[AI] -> Success!");
                 }
                 catch (Exception ex)
@@ -127,7 +127,7 @@ public class Seed
                     logger.LogError(ex, "[AI] Failed to sync {DisplayName}", user.DisplayName);
                 }
 
-                logger.LogInformation("[DEBUG] User {DisplayName} processed successfully. Waiting before next...", member.DisplayName);
+                logger.LogInformation("[DEBUG] User {DisplayName} processed successfully. Waiting...", member.DisplayName);
                 await Task.Delay(1100);
             }
             else
