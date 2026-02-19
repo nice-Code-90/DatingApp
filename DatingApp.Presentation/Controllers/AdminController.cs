@@ -2,11 +2,14 @@ using DatingApp.Application.DTOs;
 using DatingApp.Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using DatingApp.Infrastructure.Data; 
 
 namespace DatingApp.Presentation.Controllers;
 
 public class AdminController(
-    IAdminService adminService
+    IAdminService adminService,
+    IServiceScopeFactory scopeFactory,
+    ILogger<AdminController> logger
     ) : BaseApiController
 {
     [Authorize(Policy = "RequireAdminRole")]
@@ -56,8 +59,25 @@ public class AdminController(
     [HttpPost("seed-users")]
     public ActionResult SeedUsers()
     {
-        adminService.StartSeedUsersProcess();
-        return Accepted("User seeding process has been started in the background.");
+        _ = Task.Run(async () =>
+        {
+            
+            using var scope = scopeFactory.CreateScope();
+            try
+            {
+                var initializer = scope.ServiceProvider.GetRequiredService<IDbInitializer>();
+                logger.LogInformation("[Background] Seeding process started...");
+
+                await initializer.InitializeAsync();
+
+                logger.LogInformation("[Background] Seeding process finished successfully.");
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "[Background] Seeding process failed.");
+            }
+        });
+        return Accepted(new { message = "User seeding process has been started in the background. It will take ~2-3 minutes." });
     }
 
     [Authorize(Policy = "RequireAdminRole")]
