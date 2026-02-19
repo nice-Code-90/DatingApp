@@ -20,7 +20,7 @@ namespace DatingApp.Infrastructure.Services
         private readonly ILogger<AiMatchmakingService> _logger;
 
         private const string CollectionName = "members_index";
-        private const ulong VectorSize = 384;
+        private const ulong VectorSize = 768; 
 
         public AiMatchmakingService(
             IConfiguration config,
@@ -35,7 +35,7 @@ namespace DatingApp.Infrastructure.Services
             string qdrantUrl = config["Qdrant:Url"] ?? "http://localhost:6334";
             string? apiKey = config["Qdrant:ApiKey"];
 
-            _logger.LogInformation("[QDRANT_CLIENT_INIT] Initializing QdrantClient for URL: {QdrantUrl}. Using REST API mode.", qdrantUrl);
+            _logger.LogInformation("[QDRANT_CLIENT_INIT] Initializing QdrantClient for URL: {QdrantUrl}.", qdrantUrl);
 
             _qdrantClient = new QdrantClient(address: new Uri(qdrantUrl), apiKey: apiKey);
         }
@@ -52,10 +52,8 @@ namespace DatingApp.Infrastructure.Services
 
         public async Task UpdateMemberProfileAsync(Member member)
         {
-            var textDescription = $"Name: {member.DisplayName}. " +
-                                  $"Gender: {member.Gender}. " +
-                                  $"City: {member.City}, {member.Country}. " +
-                                  $"Description: {member.Description ?? "No description provided."}";
+            
+            var textDescription = member.Description ?? "No description provided."; 
 
             var embeddings = await _embeddingService.GenerateAsync(new[] { textDescription });
             var embedding = embeddings.First().Vector;
@@ -78,12 +76,12 @@ namespace DatingApp.Infrastructure.Services
 
         public async Task<IEnumerable<string>> FindMatchesIdsAsync(AiSearchParams searchParams)
         {
-            if (string.IsNullOrEmpty(searchParams.Query))
-            {
-                return Enumerable.Empty<string>();
-            }
+            if (string.IsNullOrEmpty(searchParams.Query)) return Enumerable.Empty<string>();
 
-            var embeddings = await _embeddingService.GenerateAsync(new[] { searchParams.Query });
+
+            var cleanQuery = searchParams.Query.ToLower().Trim();
+
+            var embeddings = await _embeddingService.GenerateAsync(new[] { cleanQuery });
             var queryVector = embeddings.First().Vector;
 
             var filterConditions = new List<Condition>();
@@ -98,16 +96,8 @@ namespace DatingApp.Infrastructure.Services
 
             var ageRange = new Qdrant.Client.Grpc.Range();
             bool isAgeRangeSet = false;
-            if (searchParams.MinAge > 18)
-            {
-                ageRange.Gte = searchParams.MinAge;
-                isAgeRangeSet = true;
-            }
-            if (searchParams.MaxAge < 100)
-            {
-                ageRange.Lte = searchParams.MaxAge;
-                isAgeRangeSet = true;
-            }
+            if (searchParams.MinAge > 18) { ageRange.Gte = searchParams.MinAge; isAgeRangeSet = true; }
+            if (searchParams.MaxAge < 100) { ageRange.Lte = searchParams.MaxAge; isAgeRangeSet = true; }
 
             if (isAgeRangeSet)
             {
@@ -119,12 +109,15 @@ namespace DatingApp.Infrastructure.Services
                 queryVector.ToArray(),
                 filter: new Filter { Must = { filterConditions } },
                 limit: 10,
-                scoreThreshold: 0.5f
+                scoreThreshold: 0.45f
             );
 
             var ids = new List<string>();
             foreach (var point in searchResult)
             {
+                _logger.LogInformation("AI Match found: {Name}, Score: {Score}",
+                    point.Payload["DisplayName"], point.Score);
+
                 if (point.Payload.TryGetValue("SqlId", out var sqlIdValue))
                 {
                     ids.Add(sqlIdValue.StringValue);

@@ -12,7 +12,10 @@
 <div class="relative z-10 overflow-y-auto">
   <div class="hero min-h-screen bg-transparent">
     @if (registerMode()) {
-      <div class="flex flex-col justify-center items-center w-full min-h-screen py-10">
+      <div
+        class="flex flex-col justify-center items-center w-full min-h-screen py-10"
+        id="register-section"
+      >
         <div class="w-full max-w-4xl px-4 z-20">
           <app-register class="w-full block" (cancelRegister)="showRegister($event)" />
         </div>
@@ -123,16 +126,17 @@
             <h4 class="font-bold text-primary text-lg">- Michael, 35</h4>
           </div>
         </div>
-
-        <div class="mt-20">
-          <h3 class="text-2xl font-bold mb-8 text-white">Ready to find your match?</h3>
-          <button
-            (click)="showRegister(true); learnMoreMode.set(false)"
-            class="btn btn-primary btn-lg px-12 shadow-lg shadow-primary/30"
-          >
-            Join Now
-          </button>
-        </div>
+        @if (!accountService.currentUser()) {
+          <div class="mt-20">
+            <h3 class="text-2xl font-bold mb-8 text-white">Ready to find your match?</h3>
+            <button
+              (click)="showRegister(true); learnMoreMode.set(false)"
+              class="btn btn-primary btn-lg px-12 shadow-lg shadow-primary/30"
+            >
+              Join Now
+            </button>
+          </div>
+        }
       </div>
     </section>
 

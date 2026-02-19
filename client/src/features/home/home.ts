@@ -17,6 +17,12 @@ export class Home {
     this.registerMode.set(value);
 
     if (value) this.learnMoreMode.set(false);
+    setTimeout(() => {
+      const element = document.getElementById('register-section');
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }, 100);
   }
 
   learnMore() {
