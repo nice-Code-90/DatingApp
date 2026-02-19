@@ -92,12 +92,14 @@
               We believe that finding love shouldn't be complicated. Our mission is to bring back
               the excitement of meeting someone new.
             </p>
-            <button
-              (click)="showRegister(true); learnMoreMode.set(false)"
-              class="btn btn-outline btn-primary mt-4"
-            >
-              Start your journey
-            </button>
+            @if (!accountService.currentUser()) {
+              <button
+                (click)="showRegister(true); learnMoreMode.set(false)"
+                class="btn btn-outline btn-primary mt-4"
+              >
+                Start your journey
+              </button>
+            }
           </div>
         </div>
       </div>
