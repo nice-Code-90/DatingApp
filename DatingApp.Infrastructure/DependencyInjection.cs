@@ -1,4 +1,5 @@
 using DatingApp.Application.Interfaces;
+using DatingApp.Application.Services;
 using DatingApp.Infrastructure.Data;
 using DatingApp.Infrastructure.Repository;
 using DatingApp.Infrastructure.Services;
@@ -31,6 +32,12 @@ public static class DependencyInjection
         services.AddScoped<ICacheService, InMemoryCacheService>();
         services.AddScoped<IDbInitializer, DbInitializer>();
         services.AddScoped<IDataSeedingService, DataSeedingService>();
+
+        
+        services.AddScoped<IDatingAgentTools, DatingAgentTools>();
+
+        
+        services.AddScoped<IDatingAgentService, DatingAgentService>();
 
         services.AddSingleton<IChatClient>(sp =>
             new OpenAIClient(
