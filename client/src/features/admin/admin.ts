@@ -39,7 +39,7 @@ export class Admin {
       },
       complete: () => {
         setTimeout(() => this.isSeeding.set(false), 5000);
-      }
+      },
     });
   }
 
@@ -52,9 +52,8 @@ export class Admin {
         this.isReindexing.set(false);
       },
       complete: () => {
-        // Give feedback to the user that the process has started
         setTimeout(() => this.isReindexing.set(false), 5000);
-      }
+      },
     });
   }
 }

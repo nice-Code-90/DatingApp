@@ -55,29 +55,19 @@ public class AdminController(
         return HandleResult(await adminService.RejectPhotoAsync(photoId));
     }
 
-    [Authorize(Policy = "RequireAdminRole")]
     [HttpPost("seed-users")]
     public ActionResult SeedUsers()
     {
         _ = Task.Run(async () =>
         {
-            
             using var scope = scopeFactory.CreateScope();
-            try
-            {
-                var initializer = scope.ServiceProvider.GetRequiredService<IDbInitializer>();
-                logger.LogInformation("[Background] Seeding process started...");
+            var initializer = scope.ServiceProvider.GetRequiredService<IDbInitializer>();
 
-                await initializer.InitializeAsync();
-
-                logger.LogInformation("[Background] Seeding process finished successfully.");
-            }
-            catch (Exception ex)
-            {
-                logger.LogError(ex, "[Background] Seeding process failed.");
-            }
+            
+            await initializer.SeedDemoUsersAsync();
         });
-        return Accepted(new { message = "User seeding process has been started in the background. It will take ~2-3 minutes." });
+
+        return Accepted(new { message = "Folyamat elindult..." });
     }
 
     [Authorize(Policy = "RequireAdminRole")]

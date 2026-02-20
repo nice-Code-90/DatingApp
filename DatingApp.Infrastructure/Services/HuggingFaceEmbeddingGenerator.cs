@@ -17,7 +17,7 @@ public class HuggingFaceEmbeddingGenerator : IEmbeddingGenerator<string, Embeddi
         _modelId = config["HuggingFace:ModelId"] ?? "sentence-transformers/all-mpnet-base-v2";
         _apiKey = config["HuggingFace:ApiKey"] ?? throw new Exception("Hugging Face API Key is missing!");
 
-        _httpClient.BaseAddress = new Uri("https://router.huggingface.co/");
+        _httpClient.BaseAddress = new Uri("https://router.huggingface.co/hf-inference/");
         _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _apiKey);
     }
 
@@ -30,7 +30,11 @@ public class HuggingFaceEmbeddingGenerator : IEmbeddingGenerator<string, Embeddi
 
         foreach (var text in values)
         {
-            var response = await _httpClient.PostAsJsonAsync($"models/{_modelId}", new { inputs = text }, ct);
+            
+            var response = await _httpClient.PostAsJsonAsync(
+                $"models/{_modelId}/pipeline/feature-extraction",
+                new { inputs = text },
+                ct);
 
             if (!response.IsSuccessStatusCode)
             {

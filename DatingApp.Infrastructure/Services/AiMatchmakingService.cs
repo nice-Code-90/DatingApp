@@ -109,7 +109,7 @@ namespace DatingApp.Infrastructure.Services
                 queryVector.ToArray(),
                 filter: new Filter { Must = { filterConditions } },
                 limit: 10,
-                scoreThreshold: 0.45f
+                scoreThreshold: 0.25f
             );
 
             var ids = new List<string>();

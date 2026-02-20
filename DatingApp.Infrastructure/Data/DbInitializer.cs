@@ -9,8 +9,11 @@ namespace DatingApp.Infrastructure.Data;
 public class DbInitializer(
     ILogger<DbInitializer> logger,
     AppDbContext context,
-    UserManager<AppUser> userManager) : IDbInitializer
+    UserManager<AppUser> userManager,
+    IGeocodingService geocodingService,
+    IAiMatchmakingService aiMatchmakingService) : IDbInitializer
 {
+    
     public async Task InitializeAsync()
     {
         try
@@ -25,11 +28,31 @@ public class DbInitializer(
 
         try
         {
+            
             await Seed.SeedAdmin(userManager);
+
+            
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "An error occurred during admin seeding. The app will continue to start.");
+            logger.LogError(ex, "An error occurred during admin seeding.");
+        }
+    }
+
+    
+    public async Task SeedDemoUsersAsync()
+    {
+        try
+        {
+            logger.LogInformation("Demo seeding started via Admin command...");
+            
+            await Seed.SeedUsers(logger, userManager, geocodingService, aiMatchmakingService);
+            logger.LogInformation("Demo users seeding completed.");
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error through seeding demo users");
+            throw;
         }
     }
 }
