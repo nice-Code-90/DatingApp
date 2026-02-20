@@ -67,7 +67,7 @@ public class AdminController(
             await initializer.SeedDemoUsersAsync();
         });
 
-        return Accepted(new { message = "Folyamat elindult..." });
+        return Accepted(new { message = "Demo users seed started..." });
     }
 
     [Authorize(Policy = "RequireAdminRole")]
