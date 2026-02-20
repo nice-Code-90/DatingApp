@@ -74,9 +74,9 @@ namespace DatingApp.Infrastructure.Services
             await _qdrantClient.UpsertAsync(CollectionName, new[] { point });
         }
 
-        public async Task<IEnumerable<string>> FindMatchesIdsAsync(AiSearchParams searchParams)
+        public async Task<Dictionary<string, float>> FindMatchesWithScoresAsync(AiSearchParams searchParams)
         {
-            if (string.IsNullOrEmpty(searchParams.Query)) return Enumerable.Empty<string>();
+            if (string.IsNullOrEmpty(searchParams.Query)) return new Dictionary<string, float>();
 
 
             var cleanQuery = searchParams.Query.ToLower().Trim();
@@ -112,7 +112,7 @@ namespace DatingApp.Infrastructure.Services
                 scoreThreshold: 0.25f
             );
 
-            var ids = new List<string>();
+            var matches = new Dictionary<string, float>();
             foreach (var point in searchResult)
             {
                 _logger.LogInformation("AI Match found: {Name}, Score: {Score}",
@@ -120,25 +120,29 @@ namespace DatingApp.Infrastructure.Services
 
                 if (point.Payload.TryGetValue("SqlId", out var sqlIdValue))
                 {
-                    ids.Add(sqlIdValue.StringValue);
+                    matches.Add(sqlIdValue.StringValue, point.Score);
                 }
             }
-            return ids;
+            return matches;
         }
 
         public async Task<Result<IEnumerable<MemberDto>>> FindMatchingMembersAsync(AiSearchParams searchParams)
         {
             if (string.IsNullOrEmpty(searchParams.Query)) return Result<IEnumerable<MemberDto>>.Failure("Search query cannot be empty");
 
-            var matchIds = await FindMatchesIdsAsync(searchParams);
+            var matches = await FindMatchesWithScoresAsync(searchParams);
 
-            if (!matchIds.Any())
+            if (!matches.Any())
             {
                 return Result<IEnumerable<MemberDto>>.Failure("No matches found based on your description.");
             }
-            var members = await _unitOfWork.MemberRepository.GetMembersByIdsAsync(matchIds);
+            var members = await _unitOfWork.MemberRepository.GetMembersByIdsAsync(matches.Keys);
 
-            return Result<IEnumerable<MemberDto>>.Success(members.Select(member => member.ToDto()).Where(dto => dto != null)!);
+            var memberDtos = members.Select(member => member.ToDto()).Where(dto => dto != null)!;
+
+            var orderedMembers = memberDtos.OrderByDescending(m => matches[m.Id]);
+
+            return Result<IEnumerable<MemberDto>>.Success(orderedMembers);
         }
     }
 }
