@@ -13,6 +13,8 @@ using DatingApp.Application;
 using DatingApp.Infrastructure;
 using DatingApp.Application.Helpers;
 using DatingApp.Presentation.Services;
+using Scalar.AspNetCore;    
+
 
 using Microsoft.OpenApi;
 
@@ -24,30 +26,33 @@ builder.Services.AddControllers().AddJsonOptions(options =>
 });
 
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen(options =>
+builder.Services.AddOpenApi(options =>
 {
-    
-    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    options.AddDocumentTransformer((document, context, cancellationToken) =>
     {
-        In = ParameterLocation.Header,
-        Description = "JWT Authorization header using the Bearer scheme.",
-        Name = "Authorization",
-        Type = SecuritySchemeType.Http,
-        Scheme = "bearer",
-        BearerFormat = "JWT"
+        var scheme = new OpenApiSecurityScheme
+        {
+            Type = SecuritySchemeType.Http,
+            Scheme = "bearer",
+            BearerFormat = "JWT",
+            Name = "Authorization",
+            In = ParameterLocation.Header,
+            Description = "Paste the token without prefix (Bearer)"
+        };
+
+        document.Components ??= new OpenApiComponents();
+        document.Components.SecuritySchemes ??= new Dictionary<string, IOpenApiSecurityScheme>();
+        document.Components.SecuritySchemes.Add("Bearer", scheme);
+
+        var requirement = new OpenApiSecurityRequirement();
+        var schemeReference = new OpenApiSecuritySchemeReference("Bearer");
+        requirement.Add(schemeReference, new List<string>());
+
+        document.Security ??= new List<OpenApiSecurityRequirement>();
+        document.Security.Add(requirement);
+
+        return Task.CompletedTask;
     });
-
-    
-    var schemeReference = new OpenApiSecuritySchemeReference("Bearer");
-
-    
-    var securityRequirement = new OpenApiSecurityRequirement();
-
-    
-    securityRequirement.Add(schemeReference, new List<string>());
-
-    
-    options.AddSecurityRequirement(_ => securityRequirement);
 });
 builder.Services.AddDbContext<AppDbContext>(opt =>
 {
@@ -120,12 +125,16 @@ var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
-else
-{
-    app.UseHsts();
+    
+    app.MapOpenApi();
+
+    
+    app.MapScalarApiReference(options =>
+    {
+        options.WithTitle("DatingApp AI API")
+               .WithTheme(ScalarTheme.Moon)
+               .WithDefaultHttpClient(ScalarTarget.CSharp, ScalarClient.HttpClient);
+    });
 }
 
 app.UseMiddleware<ExceptionMiddleware>();

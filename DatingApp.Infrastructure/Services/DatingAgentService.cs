@@ -34,13 +34,8 @@ public class DatingAgentService(
             var response = await agent.RunAsync(userPrompt);
             var cleanMessage = response.GetCleanContent();
 
-            
-            var resultDto = new AgentResponseDto
-            {
-                Message = cleanMessage,
-                
-                ActionsPerformed = new List<string> { "Agentic Workflow Executed" }
-            };
+
+            var resultDto = response.ToDto(cleanMessage);
 
             return Result<AgentResponseDto>.Success(resultDto);
         }

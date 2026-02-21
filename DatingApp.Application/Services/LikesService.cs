@@ -9,13 +9,19 @@ public class LikesService(IUnitOfWork uow, ICacheService cacheService, ICurrentU
 {
     public async Task<PaginatedResult<MemberDto>> GetMemberLikesAsync(LikesParams likesParams)
     {
+        
+        if (string.IsNullOrWhiteSpace(likesParams.MemberId))
+            likesParams.MemberId = currentUserService.MemberId;
+
+        
+        if (string.IsNullOrEmpty(likesParams.MemberId))
+            return new PaginatedResult<MemberDto>(new List<MemberDto>(), 0, likesParams.PageNumber, likesParams.PageSize);
+
+        
         var cacheKey = $"likes:{likesParams.MemberId}:{likesParams.Predicate}";
         var cachedResult = await cacheService.GetAsync<PaginatedResult<MemberDto>>(cacheKey);
 
-        if (cachedResult != null)
-        {
-            return cachedResult;
-        }
+        if (cachedResult != null) return cachedResult;
 
         var paginatedResult = await uow.LikesRepository.GetMemberLikesAsync(likesParams);
 

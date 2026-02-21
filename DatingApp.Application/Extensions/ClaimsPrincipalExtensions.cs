@@ -3,7 +3,7 @@ using System.Security.Claims;
 
 namespace DatingApp.Application.Extensions;
 
-public static class ClaimsPrincpialExtensions
+public static class ClaimsPrincipalExtensions
 {
     public static string GetMemberId(this ClaimsPrincipal user)
     {
