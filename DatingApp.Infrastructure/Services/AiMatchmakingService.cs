@@ -2,13 +2,13 @@ using DatingApp.Application.Interfaces;
 using DatingApp.Application.DTOs;
 using DatingApp.Application.Extensions;
 using DatingApp.Domain.Entities;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.AI;
 using Qdrant.Client;
 using Microsoft.Extensions.Logging;
 using Qdrant.Client.Grpc;
-using DatingApp.Application.Helpers;
+
 using System.Linq;
+using DatingApp.Application.Helpers;
 
 namespace DatingApp.Infrastructure.Services
 {
@@ -23,7 +23,7 @@ namespace DatingApp.Infrastructure.Services
         private const ulong VectorSize = 768; 
 
         public AiMatchmakingService(
-            IConfiguration config,
+            QdrantClient qdrantClient,
             IEmbeddingGenerator<string, Embedding<float>> embeddingService,
             IUnitOfWork unitOfWork,
             ILogger<AiMatchmakingService> logger)
@@ -31,13 +31,7 @@ namespace DatingApp.Infrastructure.Services
             _embeddingService = embeddingService;
             _unitOfWork = unitOfWork;
             _logger = logger;
-
-            string qdrantUrl = config["Qdrant:Url"] ?? "http://localhost:6334";
-            string? apiKey = config["Qdrant:ApiKey"];
-
-            _logger.LogInformation("[QDRANT_CLIENT_INIT] Initializing QdrantClient for URL: {QdrantUrl}.", qdrantUrl);
-
-            _qdrantClient = new QdrantClient(address: new Uri(qdrantUrl), apiKey: apiKey);
+            _qdrantClient = qdrantClient;
         }
 
         public async Task InitCollectionAsync()
@@ -58,6 +52,8 @@ namespace DatingApp.Infrastructure.Services
             var embeddings = await _embeddingService.GenerateAsync(new[] { textDescription });
             var embedding = embeddings.First().Vector;
 
+            
+
             var point = new PointStruct
             {
                 Id = Guid.Parse(member.Id),
@@ -74,7 +70,7 @@ namespace DatingApp.Infrastructure.Services
             await _qdrantClient.UpsertAsync(CollectionName, new[] { point });
         }
 
-        public async Task<Dictionary<string, float>> FindMatchesWithScoresAsync(AiSearchParams searchParams)
+        public async Task<Dictionary<string, float>> FindMatchesWithScoresAsync(AiSearchParamsDto searchParams)
         {
             if (string.IsNullOrEmpty(searchParams.Query)) return new Dictionary<string, float>();
 
@@ -126,7 +122,7 @@ namespace DatingApp.Infrastructure.Services
             return matches;
         }
 
-        public async Task<Result<IEnumerable<MemberDto>>> FindMatchingMembersAsync(AiSearchParams searchParams)
+        public async Task<Result<IEnumerable<MemberDto>>> FindMatchingMembersAsync(AiSearchParamsDto searchParams)
         {
             if (string.IsNullOrEmpty(searchParams.Query)) return Result<IEnumerable<MemberDto>>.Failure("Search query cannot be empty");
 
@@ -138,9 +134,12 @@ namespace DatingApp.Infrastructure.Services
             }
             var members = await _unitOfWork.MemberRepository.GetMembersByIdsAsync(matches.Keys);
 
-            var memberDtos = members.Select(member => member.ToDto()).Where(dto => dto != null)!;
+            var memberDtos = members
+                .Select(member => member.ToDto())
+                .OfType<MemberDto>();
 
-            var orderedMembers = memberDtos.OrderByDescending(m => matches[m.Id]);
+            var orderedMembers = memberDtos
+                .OrderByDescending(m => matches.GetValueOrDefault(m.Id));
 
             return Result<IEnumerable<MemberDto>>.Success(orderedMembers);
         }

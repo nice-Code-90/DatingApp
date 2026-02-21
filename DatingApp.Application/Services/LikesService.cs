@@ -11,7 +11,7 @@ public class LikesService(IUnitOfWork uow, ICacheService cacheService, ICurrentU
     {
         
         if (string.IsNullOrWhiteSpace(likesParams.MemberId))
-            likesParams.MemberId = currentUserService.MemberId;
+            likesParams.MemberId = currentUserService.MemberId!;
 
         
         if (string.IsNullOrEmpty(likesParams.MemberId))

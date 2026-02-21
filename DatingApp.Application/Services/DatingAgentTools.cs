@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel;
 using DatingApp.Application.Interfaces;
-using DatingApp.Application.Helpers;
+using DatingApp.Application.DTOs;
 
 namespace DatingApp.Application.Services;
 
@@ -20,21 +20,20 @@ public class DatingAgentTools : IDatingAgentTools
         _currentUserService = currentUserService;
     }
 
-    private string CurrentUserId => _currentUserService.MemberId
-        ?? throw new UnauthorizedAccessException("User context is missing. Please log in.");
-
     [Description("Searches for potential dating matches based on a natural language query. Can filter by gender.")]
     public async Task<string> SearchMatches(string query, string? gender = null)
     {
-        var result = await _matchmakingService.FindMatchingMembersAsync(new AiSearchParams
+        var result = await _matchmakingService.FindMatchingMembersAsync(new AiSearchParamsDto
         {
             Query = query,
             Gender = gender
         });
 
-        if (!result.IsSuccess || !result.Value.Any())
+        if (!result.IsSuccess || result.Value is not { } matches || !matches.Any())
+        {
             return "No matches found.";
-        return string.Join(", ", result.Value.Take(3).Select(m => $"{m.DisplayName} (ID: {m.Id})"));
+        }
+        return string.Join(", ", matches.Take(3).Select(m => $"{m.DisplayName} (ID: {m.Id})"));
     }
 
 

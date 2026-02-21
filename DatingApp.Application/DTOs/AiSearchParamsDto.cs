@@ -1,9 +1,10 @@
+using DatingApp.Application.Helpers;
 using System.ComponentModel;
 
-namespace DatingApp.Application.Helpers
+namespace DatingApp.Application.DTOs
 {
     
-    public class AiSearchParams : MemberParams
+    public class AiSearchParamsDto : MemberParams
     {
         [Description("The natural language description of the person the user is looking for (e.g., 'someone who loves art and long walks').")]
         public string? Query { get; set; }

@@ -1,6 +1,5 @@
 using DatingApp.Application.DTOs;
 using DatingApp.Application.Helpers;
-using NetTopologySuite.Geometries;
 
 namespace DatingApp.Application.Interfaces;
 

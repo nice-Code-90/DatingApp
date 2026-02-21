@@ -1,9 +1,9 @@
 using System.Net.Http.Json;
 using DatingApp.Application.Interfaces;
-using DatingApp.Application.Helpers;
 using NetTopologySuite.Geometries;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using DatingApp.Infrastructure.Configuration;
 
 namespace DatingApp.Infrastructure.Services;
 

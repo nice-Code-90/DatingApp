@@ -1,10 +1,10 @@
 using DatingApp.Application.DTOs;
-using DatingApp.Application.Helpers;
 using DatingApp.Application.Interfaces;
 using CloudinaryDotNet;
 using CloudinaryDotNet.Actions;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Logging;
+using DatingApp.Infrastructure.Configuration;
 
 namespace DatingApp.Infrastructure.Services;
 public class PhotoService : IPhotoService
@@ -36,7 +36,7 @@ public class PhotoService : IPhotoService
         return true;
     }
 
-    public async Task<PhotoUploadResult?> UploadPhotoAsync(Stream fileStream, string fileName)
+    public async Task<PhotoUploadResultDto?> UploadPhotoAsync(Stream fileStream, string fileName)
     {
         if (fileStream.Length == 0) return null;
 
@@ -55,7 +55,7 @@ public class PhotoService : IPhotoService
             return null;
         }
 
-        return new PhotoUploadResult
+        return new PhotoUploadResultDto
         {
             PublicId = uploadResult.PublicId,
             Url = uploadResult.SecureUrl.ToString()

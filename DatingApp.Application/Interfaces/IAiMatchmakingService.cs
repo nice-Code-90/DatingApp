@@ -1,6 +1,7 @@
 using DatingApp.Application.DTOs;
-using DatingApp.Domain.Entities;
 using DatingApp.Application.Helpers;
+using DatingApp.Domain.Entities;
+
 
 namespace DatingApp.Application.Interfaces
 {
@@ -8,8 +9,8 @@ namespace DatingApp.Application.Interfaces
     {
         Task InitCollectionAsync();
         Task UpdateMemberProfileAsync(Member member);
-        Task<Dictionary<string, float>> FindMatchesWithScoresAsync(AiSearchParams searchParams);
-        Task<Result<IEnumerable<MemberDto>>> FindMatchingMembersAsync(AiSearchParams searchParams);
+        Task<Dictionary<string, float>> FindMatchesWithScoresAsync(AiSearchParamsDto searchParams);
+        Task<Result<IEnumerable<MemberDto>>> FindMatchingMembersAsync(AiSearchParamsDto searchParams);
 
     }
 }

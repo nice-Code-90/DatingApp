@@ -1,5 +1,3 @@
-using System;
-
 namespace DatingApp.Application.DTOs;
 
 public class CreateMessageDto

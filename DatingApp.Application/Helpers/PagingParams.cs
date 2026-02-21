@@ -1,5 +1,3 @@
-using System;
-
 namespace DatingApp.Application.Helpers;
 
 public class PagingParams

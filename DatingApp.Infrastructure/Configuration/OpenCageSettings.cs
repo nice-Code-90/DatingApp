@@ -1,4 +1,4 @@
-namespace DatingApp.Application.Helpers;
+namespace DatingApp.Infrastructure.Configuration;
 
 public class OpenCageSettings
 {

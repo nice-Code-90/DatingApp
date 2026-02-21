@@ -1,4 +1,3 @@
-using System;
 using DatingApp.Application.DTOs;
 using DatingApp.Domain.Entities;
 
