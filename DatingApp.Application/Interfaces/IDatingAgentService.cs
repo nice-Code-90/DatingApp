@@ -12,5 +12,5 @@ public interface IDatingAgentService
     /// <param name="currentUserId">The ID of the logged-in user.</param>
     /// <param name="userPrompt">What the user requested (e.g., "Find sailors and like them").</param>
     /// <returns>The AI's text response about the actions performed.</returns>
-    Task<Result<AgentResponseDto>> ProcessAgentIntentAsync(string currentUserId, string userPrompt);
+    Task<Result<AgentResponseDto>> ProcessAgentIntentAsync(string userPrompt);
 }

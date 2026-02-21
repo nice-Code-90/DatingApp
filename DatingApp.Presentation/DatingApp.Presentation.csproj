@@ -23,4 +23,8 @@
     <ProjectReference Include="..\DatingApp.Infrastructure\DatingApp.Infrastructure.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Services\" />
+  </ItemGroup>
+
 </Project>

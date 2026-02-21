@@ -5,23 +5,25 @@ using DatingApp.Infrastructure.Extensions;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 
-namespace DatingApp.Infrastructure.Services;
-
 public class DatingAgentService(
     IChatClient chatClient,
     IDatingAgentTools tools,
+    ICurrentUserService currentUserService, // <-- Új injektálás
     ILogger<DatingAgentService> logger) : IDatingAgentService
 {
-    public async Task<Result<AgentResponseDto>> ProcessAgentIntentAsync(string currentUserId, string userPrompt)
+    // A 'currentUserId' paramétert töröltük a szignatúrából
+    public async Task<Result<AgentResponseDto>> ProcessAgentIntentAsync(string userPrompt)
     {
-        
+        // Opcionális: korai ellenőrzés, ha biztosra akarunk menni
+        if (string.IsNullOrEmpty(currentUserService.MemberId))
+            return Result<AgentResponseDto>.Failure("User identification failed.");
+
         var agentTools = new List<AITool>
         {
             AIFunctionFactory.Create(tools.SearchMatches),
             AIFunctionFactory.Create(tools.LikeMember)
         };
 
-        
         var agent = chatClient.CreateCerebrasAgent(
             instructions: "You are a proactive dating wingman. Your goal is to help users find matches and take actions. " +
                           "If a user asks to find someone, use SearchMatches. If they like someone, use LikeMember.",
@@ -30,11 +32,8 @@ public class DatingAgentService(
 
         try
         {
-            
             var response = await agent.RunAsync(userPrompt);
             var cleanMessage = response.GetCleanContent();
-
-
             var resultDto = response.ToDto(cleanMessage);
 
             return Result<AgentResponseDto>.Success(resultDto);

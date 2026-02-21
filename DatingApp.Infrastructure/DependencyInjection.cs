@@ -36,12 +36,9 @@ public static class DependencyInjection
         services.AddScoped<ICacheService, InMemoryCacheService>();
         services.AddScoped<IDbInitializer, DbInitializer>();
         services.AddScoped<IDataSeedingService, DataSeedingService>();
-
-        
         services.AddScoped<IDatingAgentTools, DatingAgentTools>();
-
-        
         services.AddScoped<IDatingAgentService, DatingAgentService>();
+        services.AddScoped<ICurrentUserService, CurrentUserService>();
 
         services.AddSingleton<IChatClient>(sp =>
         {

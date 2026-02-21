@@ -11,12 +11,10 @@ using Microsoft.IdentityModel.Tokens;
 using DatingApp.Presentation.Helpers;
 using DatingApp.Application;
 using DatingApp.Infrastructure;
-using DatingApp.Presentation.Services;
 using Scalar.AspNetCore;
-
-
 using Microsoft.OpenApi;
 using DatingApp.Infrastructure.Configuration;
+using DatingApp.Infrastructure.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
