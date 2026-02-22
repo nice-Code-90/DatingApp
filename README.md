@@ -23,7 +23,7 @@ The project demonstrates a production-ready **AI Engineer stack** integrated wit
 
 2.  **Cerebras-Powered Chat Intelligence**
     - **Near-Zero Latency:** Integration with **Cerebras Systems** (via `gpt-oss-120b`) ensures near-instant AI responses.
-    - **Intelligent Advice:** The Chat Assistant uses **Microsoft.Extensions.AI** to provide context-aware ice-breakers and dating advice based on chat history.
+    - **Intelligent Advice:** The Chat Assistant uses **Microsoft.Agents.AI** to provide context-aware ice-breakers and dating advice based on chat history.
 
 3.  **Dual-Store Synchronization (SQL + Qdrant)**
     - The application maintains state consistency between SQL Server (structured user data) and Qdrant (semantic data).
