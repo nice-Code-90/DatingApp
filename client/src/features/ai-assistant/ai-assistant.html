@@ -24,8 +24,9 @@
             'chat-bubble-primary': message.role === 'user',
             'chat-bubble-secondary': message.role === 'assistant',
           }"
+          (click)="handleContentClick($event)"
         >
-          {{ message.content }}
+          <div [innerHTML]="message.content | chatMarkdown"></div>
         </div>
       </div>
     }
