@@ -33,7 +33,8 @@ public class DatingAgentTools : IDatingAgentTools
         {
             return "No matches found.";
         }
-        return string.Join(", ", matches.Take(3).Select(m => $"{m.DisplayName} (ID: {m.Id})"));
+        return string.Join("\n", matches.Take(3).Select(m =>
+        $"Name: {m.DisplayName}, ID: {m.Id}, Bio: {m.Description}"));
     }
 
 

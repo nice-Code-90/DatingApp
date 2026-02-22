@@ -25,10 +25,13 @@ public class DatingAgentService(
         };
 
         var agent = chatClient.CreateCerebrasAgent(
-            instructions: "You are a proactive dating wingman. Your goal is to help users find matches and take actions. " +
-                          "If a user asks to find someone, use SearchMatches. If they like someone, use LikeMember.",
-            tools: agentTools
-        );
+              instructions: "You are a proactive dating wingman. Your goal is to help users find matches and take actions. " +
+                  "CRITICAL: When presenting matches to the user, NEVER display the Member ID (GUID). " +
+                  "Keep the IDs for your internal tool usage only. Refer to members only by their Display Name. " +
+                  "Format the matches as a clean, friendly list without technical jargon." +
+                  "Try to find matches with a single search. Do not call SearchMatches repeatedly if you already have suitable candidates.",
+              tools: agentTools
+);
 
         try
         {

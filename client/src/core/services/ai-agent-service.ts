@@ -2,11 +2,13 @@ import { inject, Injectable, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../environments/environment';
 import { finalize, tap } from 'rxjs';
+import { LikesService } from './likes-service';
 
 export interface AgentResponse {
   message: string;
   actionTaken?: string;
   suggestions?: string[];
+  affectedTargetIds?: string[];
 }
 
 export interface ChatMessage {
@@ -17,6 +19,7 @@ export interface ChatMessage {
 @Injectable({ providedIn: 'root' })
 export class AiAgentService {
   private http = inject(HttpClient);
+  private likesService = inject(LikesService);
   private baseUrl = environment.apiUrl + 'aiagent/';
 
   messages = signal<ChatMessage[]>([
@@ -36,6 +39,11 @@ export class AiAgentService {
     return this.http.post<AgentResponse>(this.baseUrl + 'process', { prompt }).pipe(
       tap((res) => {
         this.messages.update((prev) => [...prev, { role: 'assistant', content: res.message }]);
+
+        setTimeout(() => {
+          this.likesService.getLikeIds();
+          this.likesService.markDirty();
+        }, 500);
       }),
       finalize(() => this.isLoading.set(false)),
     );

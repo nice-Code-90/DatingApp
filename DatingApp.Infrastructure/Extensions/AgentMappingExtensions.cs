@@ -12,26 +12,32 @@ public static class AgentMappingExtensions
         var dto = new AgentResponseDto
         {
             Message = cleanedContent,
-            ActionsPerformed = new List<string>()
+            ActionsPerformed = new List<string>(),
+            AffectedTargetIds = new List<string>()
         };
 
-        foreach (var message in response.Messages)
-        {
-            if (message.Role == ChatRole.Assistant)
-            {
-                var functionCalls = message.Contents.OfType<FunctionCallContent>();
+        
+        var functionCalls = response.Messages
+            .Where(m => m.Role == ChatRole.Assistant)
+            .SelectMany(m => m.Contents)
+            .OfType<FunctionCallContent>()
+            .Where(call => !string.IsNullOrWhiteSpace(call.Name));
 
-                foreach (var call in functionCalls)
-                {
-                    if (!string.IsNullOrEmpty(call.Name))
-                    {
-                        dto.ActionsPerformed.Add(call.Name);
-                    }
-                }
+        foreach (var call in functionCalls)
+        {
+            dto.ActionsPerformed.Add(call.Name);
+
+            
+            if (call is { Name: "LikeMember", Arguments: not null } &&
+                call.Arguments.TryGetValue("targetMemberId", out var idObj) &&
+                idObj?.ToString() is { Length: > 0 } targetId)
+            {
+                dto.AffectedTargetIds.Add(targetId);
             }
         }
 
-        if (!dto.ActionsPerformed.Any())
+        
+        if (dto.ActionsPerformed.Count == 0)
         {
             dto.ActionsPerformed.Add("Conversation");
         }
