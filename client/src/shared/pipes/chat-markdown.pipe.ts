@@ -8,7 +8,7 @@ export class ChatMarkdownPipe implements PipeTransform {
   transform(value: string) {
     const html = value.replace(
       /\[(.*?)\]\((.*?)\)/g,
-      '<a class="link link-primary font-bold" href="$2">$1</a>',
+      '<a class="text-sky-200 underline font-bold cursor-pointer transition-colors hover:text-sky-100" href="$2">$1</a>',
     );
     return this.sanitizer.bypassSecurityTrustHtml(html);
   }

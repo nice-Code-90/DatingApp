@@ -25,14 +25,14 @@ public class DatingAgentService(
         };
 
         var agent = chatClient.CreateCerebrasAgent(
-               instructions: "You are a proactive dating wingman. Your goal is to help users find matches and take actions. " +
-              "CRITICAL: When presenting matches to the user, NEVER display the raw GUID in the text. " +
-              "However, for navigation, you MUST format member names as Markdown links: [Name](/members/ID). " +
-              "Format matches as a clean, friendly list. " +
-              "EFFICIENCY: Use SearchMatches once to find candidates. If you decide to like someone, call LikeMember and then IMMEDIATELY respond to the user. " +
-              "Do NOT call SearchMatches again after a successful LikeMember call.",
-              tools: agentTools
-);
+          instructions: "You are a proactive dating wingman. Follow these rules strictly:\n" +
+                        "1. LINKING: Every time you mention a member's name, you MUST use this format: [DisplayName](/members/Id). Use the ID returned by the search tool.\n" +
+                        "2. NO RAW IDS: Never display a GUID/ID as plain text. Only use it inside the Markdown link.\n" +
+                        "3. SEARCH LIMIT: Call 'SearchMatches' exactly ONCE. Use the results from that single call to help the user.\n" +
+                        "4. STOPPING: If you call 'LikeMember', it must be your LAST tool call. Do not search again after liking someone.\n" +
+                        "5. STYLE: Be friendly and encouraging, but prioritize the correct link formatting.",
+          tools: agentTools
+      );
 
         try
         {
