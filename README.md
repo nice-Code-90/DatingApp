@@ -16,7 +16,7 @@ _Member listing with filtering options._
 
 The project demonstrates a production-ready **AI Engineer stack** integrated within a Clean Architecture (4-project structure):
 
-1.  **Semantic Matchmaking (Refactored for Scalability)**
+1.  **Semantic Matchmaking**
     - **Vectorization:** User profiles are transformed into high-dimensional vectors. While the initial version used local ONNX models, the system was refactored to use the **Hugging Face Inference API**.
     - **The Model:** Uses the **all-mpnet-base-v2** model ($768$ dimensions). This choice provides superior semantic accuracy compared to smaller models while maintaining a serverless, lightweight backend footprint.
     - **Vector Database:** Embeddings are stored in **Qdrant**. The system performs Cosine Similarity searches to match users based on the "intent" of their descriptions rather than simple keywords.
